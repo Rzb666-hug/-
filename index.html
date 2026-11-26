@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -7,13 +7,13 @@
 <meta name="theme-color" content="#0F1716" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="救命50词">
+<meta name="apple-mobile-web-app-title" content="550词">
 <meta name="format-detection" content="telephone=no">
-<title>四六级救命50词</title>
+<title>四六级核心550词</title>
 <style>
-  /* palette: cool exam-paper neutrals, deep teal accent, amber for "不熟"
-     type: serif headword / system sans for UI — no webfonts, so it works offline
-     layout: one screen, no page scroll; card flexes, marks pinned to the bottom */
+  /* Design plan — palette: cool exam-paper neutrals, deep teal accent, amber for "不熟"
+     type: Instrument Serif for headwords, Inter + PingFang for IPA/UI/meanings
+     layout: single-screen flashcard column, 50-dot answer-sheet meter per block */
   :root {
     color-scheme: light;
     --bg: #E9EDEC;
@@ -28,6 +28,7 @@
     --unknown-ink: #7E4F08;
     --unknown-line: #E2BE7E;
     --warn: #A8650A;
+    --current-bg: #E2EDE9;
     --backdrop: rgba(10, 20, 18, 0.45);
     --shadow: 0 1px 2px rgba(15, 30, 28, 0.06), 0 14px 36px -18px rgba(15, 30, 28, 0.4);
   }
@@ -46,6 +47,7 @@
       --unknown-ink: #F0C37E;
       --unknown-line: #584529;
       --warn: #EBB264;
+      --current-bg: #1C2B27;
       --backdrop: rgba(0, 0, 0, 0.6);
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 40px -20px rgba(0, 0, 0, 0.8);
     }
@@ -64,34 +66,26 @@
     --unknown-ink: #F0C37E;
     --unknown-line: #584529;
     --warn: #EBB264;
+    --current-bg: #1C2B27;
     --backdrop: rgba(0, 0, 0, 0.6);
-    --shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 40px -20px rgba(0, 0, 0, 0.8);
   }
 
   *, *::before, *::after { box-sizing: border-box; }
   [hidden] { display: none !important; }
-
-  html {
-    height: 100%;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
+  html, body { height: 100%; }
   body {
     margin: 0;
-    height: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow: hidden;
-    overscroll-behavior: none;
     background: var(--bg);
     color: var(--ink);
-    font-family: "Inter", "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
   button { font-family: inherit; }
+  button:focus-visible, .flip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .app {
     height: 100%;
@@ -100,352 +94,335 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding:
-      max(10px, env(safe-area-inset-top, 0px))
-      max(16px, env(safe-area-inset-right, 0px))
-      max(12px, env(safe-area-inset-bottom, 0px))
-      max(16px, env(safe-area-inset-left, 0px));
+    padding-block: 10px 14px;
     min-height: 0;
   }
 
-  /* ---------- header ---------- */
-  .bar { flex: 0 0 auto; display: flex; flex-direction: column; gap: 9px; }
-  .bar-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+  /* header */
+  .bar { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+  .bar-actions { display: flex; gap: 8px; flex: 0 0 auto; }
   .eyebrow {
     margin: 0 0 2px;
     font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.13em;
     text-transform: uppercase;
     color: var(--muted);
   }
   h1 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.15; }
   .ghost {
-    min-height: 40px;
-    padding: 0 15px;
-    border-radius: 11px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
     border: 1px solid var(--line);
     background: transparent;
     color: var(--ink);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    flex: 0 0 auto;
-    touch-action: manipulation;
+    white-space: nowrap;
   }
-  .ghost:active { transform: scale(0.97); }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
   .progress-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 10px;
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.02em;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    font-size: 12px; color: var(--muted); letter-spacing: 0.02em;
   }
-  #countLabel {
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    color: var(--ink);
-    font-size: 13px;
-  }
+  #countLabel { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); font-size: 13px; }
   .dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
-  .dot {
-    height: 6px;
-    border-radius: 2px;
-    background: var(--line);
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
+  .dot { height: 6px; border-radius: 2px; background: var(--line); transition: background 0.2s ease, transform 0.2s ease; }
   .dot.done.known { background: var(--accent); }
   .dot.done.unfamiliar { background: var(--warn); }
   .dot.current { background: var(--ink); transform: scaleY(1.7); }
+  .speak-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .accent-note { font-size: 11px; letter-spacing: 0.05em; color: var(--muted); }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 0; background: transparent; padding: 2px 0;
+    color: var(--muted); font-size: 11.5px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .toggle .track {
+    width: 30px; height: 18px; border-radius: 999px;
+    background: var(--line); position: relative; transition: background 0.2s ease;
+  }
+  .toggle .thumb {
+    position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--surface); transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .toggle.on { color: var(--accent); }
+  .toggle.on .track { background: var(--accent); }
+  .toggle.on .thumb { transform: translateX(12px); }
+  .no-tts .speak-btn, .no-tts .speak-row { display: none !important; }
 
-  /* ---------- card ---------- */
+  /* card */
   .stage { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
   .flip {
     flex: 1 1 auto;
-    min-height: 240px;
+    min-height: 250px;
     perspective: 1600px;
     cursor: pointer;
     border-radius: 22px;
-    touch-action: pan-y;
-    will-change: transform;
-    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.25, 1);
+    -webkit-tap-highlight-color: transparent;
   }
-  .flip.dragging { transition: none; }
   .flip-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
+    position: relative; width: 100%; height: 100%;
     transform-style: preserve-3d;
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.25, 1);
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.25, 1);
   }
   .flip.flipped .flip-inner { transform: rotateY(180deg); }
   .face {
-    position: absolute;
-    inset: 0;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    position: absolute; inset: 0;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 22px;
     box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 54px 22px 46px;
-    gap: 12px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 62px 22px 46px;
+    gap: 10px;
     text-align: center;
     overflow: hidden;
   }
   .face.back { transform: rotateY(180deg); }
-  .freq {
-    position: absolute;
-    top: 16px;
-    left: 20px;
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-  .freq b {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ink);
+  .no {
+    position: absolute; top: 16px; left: 20px; margin: 0;
+    font-size: 11px; letter-spacing: 0.08em; color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
+  .speak-btn {
+    position: absolute; top: 9px; right: 9px;
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--line);
+    color: var(--muted); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .speak-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .speak-btn.playing { color: var(--known-bg); border-color: var(--known-bg); background: var(--current-bg); }
   .word {
     margin: 0;
-    font-family: ui-serif, Georgia, "Times New Roman", "Songti SC", "Noto Serif", serif;
+    font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
     font-weight: 400;
-    font-size: clamp(40px, 14vw, 74px);
-    line-height: 1.04;
+    font-size: clamp(42px, 12vw, 74px);
+    line-height: 1.02;
     letter-spacing: -0.01em;
     overflow-wrap: anywhere;
     text-wrap: balance;
   }
-  .back-word {
-    position: absolute;
-    top: 16px;
-    left: 20px;
+  .word.mid { font-size: clamp(30px, 8.4vw, 50px); }
+  .word.long { font-size: clamp(24px, 6.6vw, 38px); }
+  .ipa {
     margin: 0;
-    font-family: ui-serif, Georgia, "Songti SC", serif;
-    font-size: 15px;
-    letter-spacing: 0.02em;
+    font-size: clamp(14px, 4.2vw, 18px);
+    letter-spacing: 0.01em;
     color: var(--muted);
+    overflow-wrap: anywhere;
   }
+  .back-head {
+    position: absolute; top: 14px; left: 20px; right: 58px;
+    display: flex; flex-direction: column; gap: 2px; text-align: left;
+  }
+  .back-word {
+    margin: 0; font-family: "Instrument Serif", Georgia, serif;
+    font-size: 16px; letter-spacing: 0.02em;
+  }
+  .back-ipa { margin: 0; font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
   .meaning {
     margin: 0;
-    font-size: clamp(21px, 6.2vw, 29px);
+    font-size: clamp(20px, 5.6vw, 28px);
     line-height: 1.55;
     font-weight: 500;
-    max-width: 22ch;
+    max-width: 26ch;
     text-wrap: balance;
+    overflow-wrap: anywhere;
   }
   .hint {
-    position: absolute;
-    bottom: 14px;
-    left: 0;
-    right: 0;
-    margin: 0;
-    font-size: 11.5px;
-    letter-spacing: 0.08em;
-    color: var(--muted);
+    position: absolute; bottom: 15px; left: 0; right: 0; margin: 0;
+    font-size: 11.5px; letter-spacing: 0.08em; color: var(--muted);
   }
 
-  /* ---------- controls ---------- */
+  /* controls */
   .controls { flex: 0 0 auto; display: flex; flex-direction: column; gap: 9px; }
   .nav-row { display: flex; gap: 10px; }
   .mini {
-    flex: 1;
-    min-height: 42px;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--muted);
-    font-size: 13.5px;
-    cursor: pointer;
-    touch-action: manipulation;
+    flex: 1; height: 38px; border-radius: 11px;
+    border: 1px solid var(--line); background: transparent;
+    color: var(--muted); font-size: 13px; cursor: pointer;
   }
-  .mini:active:not(:disabled) { background: rgba(0, 0, 0, 0.04); }
+  .mini:hover:not(:disabled) { color: var(--ink); border-color: var(--muted); }
   .mini:disabled { opacity: 0.4; cursor: default; }
   .mark-row { display: flex; gap: 10px; }
   .mark {
-    flex: 1;
-    min-height: 56px;
-    border-radius: 16px;
-    border: 1px solid transparent;
-    font-size: 16.5px;
-    font-weight: 600;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: transform 0.08s ease;
+    flex: 1; height: 52px; border-radius: 15px;
+    border: 1px solid transparent; font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: transform 0.08s ease, filter 0.15s ease;
   }
-  .mark:active { transform: scale(0.97); }
-  .mark.unknown {
-    background: var(--unknown-bg);
-    color: var(--unknown-ink);
-    border-color: var(--unknown-line);
-  }
+  .mark:active { transform: scale(0.98); }
+  .mark.unknown { background: var(--unknown-bg); color: var(--unknown-ink); border-color: var(--unknown-line); }
   .mark.known { background: var(--known-bg); color: var(--known-ink); }
-  .kbd-hint {
-    margin: 0;
-    text-align: center;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-  @media (hover: none), (pointer: coarse) { .kbd-hint { display: none; } }
+  .kbd-hint { margin: 0; text-align: center; font-size: 11px; letter-spacing: 0.05em; color: var(--muted); }
+  @media (hover: none) { .kbd-hint { display: none; } }
 
-  /* ---------- end screen ---------- */
+  /* end screen */
   .end {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 14px;
-    padding: 8px 2px;
-    text-align: center;
-    overflow-y: auto;
+    flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center;
+    gap: 14px; padding: 6px 2px; text-align: center;
   }
   .end h2 { margin: 0; font-size: 25px; font-weight: 600; line-height: 1.25; }
-  .end .sub { margin: -4px 0 2px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+  .end .sub { margin: -6px 0 2px; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
   .stats { display: flex; gap: 12px; }
   .stat {
-    flex: 1;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
-    padding: 15px 10px 13px;
+    flex: 1; border: 1px solid var(--line); border-radius: 16px;
+    background: var(--surface); padding: 14px 10px 12px;
   }
-  .stat .n {
-    display: block;
-    font-size: 36px;
-    font-weight: 600;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
+  .stat .n { display: block; font-size: 34px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .stat .n.warn { color: var(--warn); }
-  .stat .l { display: block; margin-top: 4px; font-size: 11.5px; letter-spacing: 0.1em; color: var(--muted); }
-  .end-actions { display: flex; flex-direction: column; gap: 10px; }
+  .stat .l { display: block; margin-top: 3px; font-size: 11.5px; letter-spacing: 0.1em; color: var(--muted); }
+  .end-actions { display: flex; flex-direction: column; gap: 9px; }
   .cta {
-    min-height: 54px;
-    border: none;
-    border-radius: 16px;
-    background: var(--known-bg);
-    color: var(--known-ink);
-    font-size: 16.5px;
-    font-weight: 600;
-    cursor: pointer;
-    touch-action: manipulation;
+    height: 50px; border: 1.5px solid transparent; border-radius: 15px;
+    background: var(--known-bg); color: var(--known-ink);
+    font-size: 15.5px; font-weight: 600; cursor: pointer;
   }
+  .cta.secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
   .cta:disabled { opacity: 0.45; cursor: default; }
   .cta:active:not(:disabled) { transform: scale(0.99); }
 
-  /* ---------- word list sheet ---------- */
+  /* sheets */
   .sheet {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    background: var(--backdrop);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
+    position: fixed; inset: 0; z-index: 50; background: var(--backdrop);
+    display: flex; align-items: flex-end; justify-content: center;
   }
   .sheet-panel {
-    width: 100%;
-    max-width: 560px;
-    max-height: 84%;
-    max-height: 84dvh;
-    background: var(--surface);
-    color: var(--ink);
-    border-radius: 20px 20px 0 0;
-    border-top: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    width: 100%; max-width: 560px; max-height: 84vh;
+    background: var(--surface); color: var(--ink);
+    border-radius: 20px 20px 0 0; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; overflow: hidden;
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    animation: rise 0.22s ease-out;
   }
-  @keyframes rise { from { transform: translateY(18px); opacity: 0.6; } to { transform: none; opacity: 1; } }
   .sheet-head {
-    flex: 0 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line);
   }
   .sheet-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
-  #sheetList {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+  .sheet-sub { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); }
+  .block-list { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .block-row {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 13px 18px; background: transparent; border: 0;
+    border-bottom: 1px solid var(--line); color: var(--ink);
+    text-align: left; cursor: pointer; font-size: 14px;
   }
-  #sheetList li {
+  .block-row:last-child { border-bottom: none; }
+  .block-row.current { background: var(--current-bg); }
+  .block-name { font-weight: 600; white-space: nowrap; }
+  .block-range { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+  .block-meta { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chev { color: var(--muted); font-size: 18px; line-height: 1; }
+
+  .word-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .word-list li {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 1px 12px;
-    padding: 11px 16px;
+    grid-template-rows: auto auto auto;
+    gap: 1px 10px;
+    padding: 10px 18px;
     border-bottom: 1px solid var(--line);
   }
-  #sheetList li:last-child { border-bottom: none; }
-  #sheetList li .w { font-family: ui-serif, Georgia, "Songti SC", serif; font-size: 19px; line-height: 1.25; }
-  #sheetList li .f { font-size: 11px; color: var(--muted); align-self: center; font-variant-numeric: tabular-nums; }
-  #sheetList li .m { grid-column: 1 / -1; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .word-list li:last-child { border-bottom: none; }
+  .word-list .w { grid-area: 1 / 1; font-family: "Instrument Serif", Georgia, serif; font-size: 19px; line-height: 1.25; overflow-wrap: anywhere; }
+  .word-list .ipa { grid-area: 2 / 1; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  .word-list .m { grid-area: 3 / 1 / 4 / 3; font-size: 13px; line-height: 1.5; color: var(--muted); margin-top: 2px; }
+  .mini-speak {
+    grid-area: 1 / 2 / 3 / 3;
+    align-self: start;
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--line);
+    color: var(--muted); cursor: pointer; padding: 0;
+  }
+  .mini-speak:hover { color: var(--accent); border-color: var(--accent); }
+  .mini-speak.playing { color: var(--known-bg); border-color: var(--known-bg); }
 
   @media (prefers-reduced-motion: reduce) {
-    .flip, .flip-inner, .dot, .mark { transition: none; }
+    .flip-inner, .dot, .mark, .toggle .track, .toggle .thumb { transition: none; }
     .mark:active { transform: none; }
-    .sheet-panel { animation: none; }
   }
-</style>
-</head>
-<body>
+
+  /* --- mobile shell --- */
+  @supports (height: 100dvh) { html, body { height: 100dvh; } }
+  body { -webkit-text-size-adjust: 100%; overscroll-behavior-y: none; }
+  .app { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+  @media (hover: none) { .ghost:hover { border-color: var(--line); color: var(--ink); } }
+  </style>`n</head>`n<body>
 
 <div class="app">
   <header class="bar">
     <div class="bar-row">
       <div>
-        <p class="eyebrow">CET 4/6 高频词</p>
-        <h1>四六级救命50词</h1>
+        <p class="eyebrow">CET 4/6 · 550 词</p>
+        <h1>四六级核心550词</h1>
       </div>
-      <button class="ghost" id="listBtn" type="button">词表</button>
+      <div class="bar-actions">
+        <button class="ghost" id="blocksBtn" type="button">分组</button>
+        <button class="ghost" id="listBtn" type="button">词表</button>
+      </div>
     </div>
     <div class="progress-row">
-      <span id="roundLabel">第 1 轮 · 全部 50 词</span>
+      <span id="roundLabel">第 1 组 · 1–50</span>
       <span id="countLabel">1 / 50</span>
     </div>
     <div class="dots" id="dots" aria-hidden="true"></div>
+    <div class="speak-row">
+      <span class="accent-note">英式音标 · 英式读音</span>
+      <button class="toggle on" id="autoBtn" type="button" aria-pressed="true">
+        <span class="track"><span class="thumb"></span></span>
+        <span>自动朗读</span>
+      </button>
+    </div>
   </header>
 
   <main class="stage">
     <div class="flip" id="flip" role="button" tabindex="0" aria-label="单词卡片，点击翻面看释义">
       <div class="flip-inner">
         <section class="face front">
-          <p class="freq"><b id="freqNum">414</b>次</p>
-          <p class="word" id="word">available</p>
-          <p class="hint">轻点翻面 · 左右滑切换</p>
+          <p class="no" id="noLabel">No. 1</p>
+          <button class="speak-btn" id="speakFront" type="button" aria-label="朗读单词">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4.5 9.5h3L12 6.2v11.6L7.5 14.5h-3z"/>
+              <path d="M15.5 9.2a4 4 0 0 1 0 5.6"/>
+              <path d="M18 6.8a7.6 7.6 0 0 1 0 10.4"/>
+            </svg>
+          </button>
+          <p class="word" id="word">alter</p>
+          <p class="ipa" id="ipa">/ˈɔːltə(r)/</p>
+          <p class="hint">点击翻面</p>
         </section>
         <section class="face back">
-          <p class="back-word" id="backWord">available</p>
-          <p class="meaning" id="meaning">adj. 可利用的，可得到的</p>
-          <p class="hint">轻点返回</p>
+          <div class="back-head">
+            <p class="back-word" id="backWord">alter</p>
+            <p class="back-ipa" id="backIpa">/ˈɔːltə(r)/</p>
+          </div>
+          <button class="speak-btn" id="speakBack" type="button" aria-label="朗读单词">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4.5 9.5h3L12 6.2v11.6L7.5 14.5h-3z"/>
+              <path d="M15.5 9.2a4 4 0 0 1 0 5.6"/>
+              <path d="M18 6.8a7.6 7.6 0 0 1 0 10.4"/>
+            </svg>
+          </button>
+          <p class="meaning" id="meaning">v. 改变，改动，变更</p>
+          <p class="hint">点击返回</p>
         </section>
       </div>
     </div>
 
     <section class="end" id="end" hidden>
       <div>
-        <p class="eyebrow" id="endRound">第 1 轮</p>
-        <h2 id="endTitle">本轮完成</h2>
+        <p class="eyebrow" id="endRound">第 1 组 · 1–50</p>
+        <h2 id="endTitle">本组完成</h2>
       </div>
       <p class="sub" id="endSub"></p>
       <div class="stats">
@@ -453,8 +430,9 @@
         <div class="stat"><span class="n warn" id="statUnknown">0</span><span class="l">不 熟</span></div>
       </div>
       <div class="end-actions">
-        <button class="cta" id="retryBtn" type="button">重练不熟的词</button>
-        <button class="ghost" id="againBtn" type="button">重新过全部 50 词</button>
+        <button class="cta" id="nextBlockBtn" type="button">进入下一组（51–100）</button>
+        <button class="cta secondary" id="retryBtn" type="button">重练不熟的词</button>
+        <button class="ghost" id="againBtn" type="button">重新过本组</button>
       </div>
     </section>
   </main>
@@ -468,326 +446,1082 @@
       <button class="mark unknown" id="unknownBtn" type="button">✗ 不熟</button>
       <button class="mark known" id="knownBtn" type="button">✓ 认识</button>
     </div>
-    <p class="kbd-hint">空格翻面 · ← → 切换 · 1 认识 · 2 不熟</p>
+    <p class="kbd-hint">空格翻面 · ← → 切换 · 1 认识 · 2 不熟 · P 朗读</p>
   </footer>
 </div>
 
-<div class="sheet" id="sheet" hidden>
-  <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="全部词表">
+<div class="sheet" id="blocksSheet" hidden>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="选择分组">
     <div class="sheet-head">
-      <h2>全部 50 词</h2>
-      <button class="ghost" id="closeSheet" type="button">关闭</button>
+      <div>
+        <h2>选择分组</h2>
+        <p class="sheet-sub">共 11 组 · 每组 50 词</p>
+      </div>
+      <button class="ghost" id="closeBlocks" type="button">关闭</button>
     </div>
-    <ol id="sheetList"></ol>
+    <div class="block-list" id="blockList"></div>
+  </div>
+</div>
+
+<div class="sheet" id="listSheet" hidden>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="本组词表">
+    <div class="sheet-head">
+      <div>
+        <h2 id="listTitle">第 1 组 · 1–50</h2>
+        <p class="sheet-sub">点击右侧喇叭朗读</p>
+      </div>
+      <button class="ghost" id="closeList" type="button">关闭</button>
+    </div>
+    <ol class="word-list" id="listItems"></ol>
   </div>
 </div>
 
 <script>
   const WORDS = [
-    { id: 1,  word: "available",    freq: 414, meaning: "adj. 可利用的，可得到的" },
-    { id: 2,  word: "resident",     freq: 395, meaning: "adj. 定居的；n. 居民" },
-    { id: 3,  word: "conversation", freq: 392, meaning: "n. 交谈，谈话" },
-    { id: 4,  word: "direction",    freq: 386, meaning: "n. 方向，指导" },
-    { id: 5,  word: "sheet",        freq: 312, meaning: "n. 床单，一张(纸)，薄片" },
-    { id: 6,  word: "correspond",   freq: 251, meaning: "v. 符合，联系" },
-    { id: 7,  word: "advance",      freq: 247, meaning: "v. 促进，提前；n. 进步" },
-    { id: 8,  word: "total",        freq: 219, meaning: "adj. 全部的；vt. 共计；n. 总数" },
-    { id: 9,  word: "contribute",   freq: 212, meaning: "v. 贡献出；促进" },
-    { id: 10, word: "single",       freq: 201, meaning: "adj. 一个的，单身的" },
-    { id: 11, word: "information",  freq: 189, meaning: "n. 消息，资料" },
-    { id: 12, word: "research",     freq: 175, meaning: "v. 研究，调查" },
-    { id: 13, word: "experience",   freq: 171, meaning: "v./n. 经验，经历" },
-    { id: 14, word: "program",      freq: 162, meaning: "n. 程序，节目；v. 编程" },
-    { id: 15, word: "identify",     freq: 154, meaning: "v. 鉴定，认出，发现" },
-    { id: 16, word: "digital",      freq: 146, meaning: "adj. 数码的，数字的" },
-    { id: 17, word: "average",      freq: 135, meaning: "adj. 平均的，普通的" },
-    { id: 18, word: "rate",         freq: 128, meaning: "n. 速度，价格；v. 评价，评估" },
-    { id: 19, word: "position",     freq: 125, meaning: "n. 职位，处境，位置" },
-    { id: 20, word: "appeal",       freq: 121, meaning: "n. 呼吁，恳求；申诉" },
-    { id: 21, word: "feature",      freq: 118, meaning: "n. 面貌特征，特点" },
-    { id: 22, word: "individual",   freq: 108, meaning: "adj. 个人的；n. 个人" },
-    { id: 23, word: "academic",     freq: 99,  meaning: "adj. 学院的；n. 大学教师" },
-    { id: 24, word: "access",       freq: 93,  meaning: "n. 入口；接近…的方法" },
-    { id: 25, word: "obesity",      freq: 91,  meaning: "n. 肥大，肥胖" },
-    { id: 26, word: "item",         freq: 86,  meaning: "n. 物品，条款，项目" },
-    { id: 27, word: "recession",    freq: 85,  meaning: "n. 经济衰退" },
-    { id: 28, word: "process",      freq: 79,  meaning: "v. 处理；n. 过程；步骤" },
-    { id: 29, word: "regulation",   freq: 78,  meaning: "n. 规章" },
-    { id: 30, word: "release",      freq: 75,  meaning: "v. 释放，发布；放开" },
-    { id: 31, word: "tend",         freq: 72,  meaning: "v. 趋向" },
-    { id: 32, word: "promote",      freq: 70,  meaning: "v. 促进，提升，推销" },
-    { id: 33, word: "affect",       freq: 65,  meaning: "v. 影响，感动，假装" },
-    { id: 34, word: "involve",      freq: 65,  meaning: "v. 包含；参与" },
-    { id: 35, word: "communicate",  freq: 64,  meaning: "v. 交流；传播" },
-    { id: 36, word: "condition",    freq: 61,  meaning: "n. 条件，状态" },
-    { id: 37, word: "professional", freq: 59,  meaning: "adj. 专业的" },
-    { id: 38, word: "pose",         freq: 59,  meaning: "v. 引起(困难等)；提出" },
-    { id: 39, word: "concern",      freq: 59,  meaning: "v. 涉及；n. 担心" },
-    { id: 40, word: "compound",     freq: 58,  meaning: "n. 化合物；v. 合成" },
-    { id: 41, word: "approach",     freq: 57,  meaning: "v. 接近；n. 接近；方法" },
-    { id: 42, word: "nature",       freq: 52,  meaning: "n. 大自然，天性" },
-    { id: 43, word: "occasion",     freq: 52,  meaning: "n. 场合，时机" },
-    { id: 44, word: "major",        freq: 52,  meaning: "adj. 主要的；v. 主修" },
-    { id: 45, word: "impact",       freq: 51,  meaning: "n.&v. 影响" },
-    { id: 46, word: "financial",    freq: 50,  meaning: "adj. 财政的，金融的" },
-    { id: 47, word: "derive",       freq: 50,  meaning: "v. 起源，来自" },
-    { id: 48, word: "potential",    freq: 50,  meaning: "n. 潜力；adj. 潜在的" },
-    { id: 49, word: "university",   freq: 49,  meaning: "n. 大学" },
-    { id: 50, word: "function",     freq: 49,  meaning: "n. 功能；v. 起作用" }
+    { n: 1, w: "alter", ipa: "/ˈɔːltə(r)/", m: "v. 改变，改动，变更" },
+    { n: 2, w: "burst", ipa: "/bɜːst/", m: "vi. n. 突然发生，爆裂" },
+    { n: 3, w: "dispose", ipa: "/dɪˈspəʊz/", m: "vi. 除掉；处理(of)" },
+    { n: 4, w: "consume", ipa: "/kənˈsjuːm/", m: "v. 消耗，耗尽" },
+    { n: 5, w: "split", ipa: "/splɪt/", m: "v. 劈开 a. 裂开的" },
+    { n: 6, w: "spill", ipa: "/spɪl/", m: "v. 溢出，倒出" },
+    { n: 7, w: "slip", ipa: "/slɪp/", m: "v. 滑动，忽略" },
+    { n: 8, w: "slide", ipa: "/slaɪd/", m: "v. 滑落 n. 滑动" },
+    { n: 9, w: "bacteria", ipa: "/bækˈtɪəriə/", m: "n. 细菌" },
+    { n: 10, w: "budget", ipa: "/ˈbʌdʒɪt/", m: "n. 预算" },
+    { n: 11, w: "candidate", ipa: "/ˈkændɪdət/", m: "n. 候选人" },
+    { n: 12, w: "campus", ipa: "/ˈkæmpəs/", m: "n. 校园" },
+    { n: 13, w: "liberal", ipa: "/ˈlɪbərəl/", m: "a. 慷慨的；自由的" },
+    { n: 14, w: "transform", ipa: "/trænsˈfɔːm/", m: "v. 转变，变革" },
+    { n: 15, w: "transmit", ipa: "/trænzˈmɪt/", m: "v. 传播，传递" },
+    { n: 16, w: "transport", ipa: "/trænˈspɔːt/", m: "v. 运输 n. 运输" },
+    { n: 17, w: "shift", ipa: "/ʃɪft/", m: "v. 转移；转变" },
+    { n: 18, w: "vary", ipa: "/ˈveəri/", m: "v. 变化，使多样化" },
+    { n: 19, w: "vanish", ipa: "/ˈvænɪʃ/", m: "vi. 消失" },
+    { n: 20, w: "swallow", ipa: "/ˈswɒləʊ/", m: "v. 吞下" },
+    { n: 21, w: "suspicion", ipa: "/səˈspɪʃn/", m: "n. 怀疑，疑心" },
+    { n: 22, w: "mild", ipa: "/maɪld/", m: "a. 温和的" },
+    { n: 23, w: "nuisance", ipa: "/ˈnjuːsns/", m: "n. 损害，妨害" },
+    { n: 24, w: "accelerate", ipa: "/əkˈseləreɪt/", m: "vt. 加速，促进" },
+    { n: 25, w: "absolute", ipa: "/ˈæbsəluːt/", m: "a. 绝对的，完全的" },
+    { n: 26, w: "boundary", ipa: "/ˈbaʊndri/", m: "n. 分界线，边界" },
+    { n: 27, w: "brake", ipa: "/breɪk/", m: "n. 刹车 v. 刹住" },
+    { n: 28, w: "catalog", ipa: "/ˈkætəlɒɡ/", m: "n. 目录" },
+    { n: 29, w: "vague", ipa: "/veɪɡ/", m: "a. 模糊的，不明确的" },
+    { n: 30, w: "vain", ipa: "/veɪn/", m: "n. 徒劳，白费" },
+    { n: 31, w: "extinct", ipa: "/ɪkˈstɪŋkt/", m: "a. 绝灭的，熄灭的" },
+    { n: 32, w: "extraordinary", ipa: "/ɪkˈstrɔːdnri/", m: "a. 不平常的，非凡的" },
+    { n: 33, w: "extreme", ipa: "/ɪkˈstriːm/", m: "a. 极度的" },
+    { n: 34, w: "agent", ipa: "/ˈeɪdʒənt/", m: "n. 代理人，代理商；动因" },
+    { n: 35, w: "alcohol", ipa: "/ˈælkəhɒl/", m: "n. 酒精" },
+    { n: 36, w: "appeal", ipa: "/əˈpiːl/", m: "n./vi. 呼吁，恳求" },
+    { n: 37, w: "appreciate", ipa: "/əˈpriːʃieɪt/", m: "vt. 重视，赏识，欣赏" },
+    { n: 38, w: "approve", ipa: "/əˈpruːv/", m: "v. 赞成，同意，批准" },
+    { n: 39, w: "stimulate", ipa: "/ˈstɪmjuleɪt/", m: "vt. 刺激，激励" },
+    { n: 40, w: "acquire", ipa: "/əˈkwaɪə(r)/", m: "vt. 取得，获得；学到" },
+    { n: 41, w: "accomplish", ipa: "/əˈkʌmplɪʃ/", m: "vt. 完成，到达；实行" },
+    { n: 42, w: "network", ipa: "/ˈnetwɜːk/", m: "n. 网状物" },
+    { n: 43, w: "tide", ipa: "/taɪd/", m: "n. 潮汐；潮流" },
+    { n: 44, w: "trace", ipa: "/treɪs/", m: "vt. 追踪 n. 痕迹，踪迹" },
+    { n: 45, w: "wander", ipa: "/ˈwɒndə(r)/", m: "vi. 漫游，闲逛" },
+    { n: 46, w: "preserve", ipa: "/prɪˈzɜːv/", m: "v. 保护，保存，保持" },
+    { n: 47, w: "abuse", ipa: "/əˈbjuːz/", m: "v. 滥用，虐待；谩骂" },
+    { n: 48, w: "academic", ipa: "/ˌækəˈdemɪk/", m: "a. 学术的；高等院校" },
+    { n: 49, w: "academy", ipa: "/əˈkædəmi/", m: "n. 专科院校；学会" },
+    { n: 50, w: "battery", ipa: "/ˈbætri/", m: "n. 电池（组）" },
+    { n: 51, w: "barrier", ipa: "/ˈbæriə(r)/", m: "n. 障碍；栅栏" },
+    { n: 52, w: "cargo", ipa: "/ˈkɑːɡəʊ/", m: "n. 货物" },
+    { n: 53, w: "career", ipa: "/kəˈrɪə(r)/", m: "n. 生涯，职业" },
+    { n: 54, w: "vessel", ipa: "/ˈvesl/", m: "n. 船舶；容器，器皿；血管" },
+    { n: 55, w: "oblige", ipa: "/əˈblaɪdʒ/", m: "v. 迫使，责成；使感激" },
+    { n: 56, w: "extent", ipa: "/ɪkˈstent/", m: "n. 程度，范围，大小，限度" },
+    { n: 57, w: "delay", ipa: "/dɪˈleɪ/", m: "vt./n. 推迟，延误，耽搁" },
+    { n: 58, w: "decay", ipa: "/dɪˈkeɪ/", m: "vi. 腐烂，腐朽" },
+    { n: 59, w: "route", ipa: "/ruːt/", m: "n. 路；路线；航线" },
+    { n: 60, w: "ruin", ipa: "/ˈruːɪn/", m: "v. 毁坏 n. 毁灭，废墟" },
+    { n: 61, w: "scale", ipa: "/skeɪl/", m: "n. 大小，规模；等级；刻度" },
+    { n: 62, w: "tedious", ipa: "/ˈtiːdiəs/", m: "a. 乏味的，单调的" },
+    { n: 63, w: "tend", ipa: "/tend/", m: "vi. 易于，趋向" },
+    { n: 64, w: "tendency", ipa: "/ˈtendənsi/", m: "n. 趋向，趋势" },
+    { n: 65, w: "ultimate", ipa: "/ˈʌltɪmət/", m: "a. 极端的 n. 极端" },
+    { n: 66, w: "undergo", ipa: "/ˌʌndəˈɡəʊ/", m: "v. 经历，遭受" },
+    { n: 67, w: "abundant", ipa: "/əˈbʌndənt/", m: "a. 丰富的，充裕的" },
+    { n: 68, w: "adopt", ipa: "/əˈdɒpt/", m: "v. 收养；采用；采纳" },
+    { n: 69, w: "adapt", ipa: "/əˈdæpt/", m: "vi. 适应，适合 vt. 使适应" },
+    { n: 70, w: "casual", ipa: "/ˈkæʒuəl/", m: "a. 偶然的，临时的" },
+    { n: 71, w: "trap", ipa: "/træp/", m: "n. 陷阱，圈套 v. 设陷阱捕捉" },
+    { n: 72, w: "vacant", ipa: "/ˈveɪkənt/", m: "a. 空的，未占用的" },
+    { n: 73, w: "excess", ipa: "/ɪkˈses/", m: "n. 过分，过量，过剩" },
+    { n: 74, w: "expenditure", ipa: "/ɪkˈspendɪtʃə(r)/", m: "n. 支出，消费" },
+    { n: 75, w: "expense", ipa: "/ɪkˈspens/", m: "n. 开销，费用" },
+    { n: 76, w: "expensive", ipa: "/ɪkˈspensɪv/", m: "a. 贵的" },
+    { n: 77, w: "expand", ipa: "/ɪkˈspænd/", m: "v. 扩大，扩张；展开" },
+    { n: 78, w: "expansion", ipa: "/ɪkˈspænʃn/", m: "n. 扩大，扩充" },
+    { n: 79, w: "private", ipa: "/ˈpraɪvət/", m: "a. 私人的，个人的" },
+    { n: 80, w: "individual", ipa: "/ˌɪndɪˈvɪdʒuəl/", m: "a. 个别的 n. 个人" },
+    { n: 81, w: "personal", ipa: "/ˈpɜːsənl/", m: "a. 个人的，私人的" },
+    { n: 82, w: "personnel", ipa: "/ˌpɜːsəˈnel/", m: "n. [总称] 人员，员工" },
+    { n: 83, w: "grant", ipa: "/ɡrɑːnt/", m: "vt. 授予，同意，准予" },
+    { n: 84, w: "grand", ipa: "/ɡrænd/", m: "a. 宏伟的，壮丽的" },
+    { n: 85, w: "acknowledge", ipa: "/əkˈnɒlɪdʒ/", m: "v. 承认" },
+    { n: 86, w: "calculate", ipa: "/ˈkælkjuleɪt/", m: "vt. 计算" },
+    { n: 87, w: "calendar", ipa: "/ˈkælɪndə(r)/", m: "n. 日历" },
+    { n: 88, w: "optimistic", ipa: "/ˌɒptɪˈmɪstɪk/", m: "a. 乐观的" },
+    { n: 89, w: "outstanding", ipa: "/aʊtˈstændɪŋ/", m: "a. 杰出的，突出的" },
+    { n: 90, w: "export", ipa: "/ɪkˈspɔːt/", m: "n. 出口（物） v. 出口" },
+    { n: 91, w: "import", ipa: "/ɪmˈpɔːt/", m: "n. 进口（物） v. 进口" },
+    { n: 92, w: "impose", ipa: "/ɪmˈpəʊz/", m: "vt. 把…加强(on)；采用" },
+    { n: 93, w: "religion", ipa: "/rɪˈlɪdʒən/", m: "n. 宗教，宗教信仰" },
+    { n: 94, w: "religious", ipa: "/rɪˈlɪdʒəs/", m: "a. 宗教的" },
+    { n: 95, w: "victim", ipa: "/ˈvɪktɪm/", m: "n. 牺牲品，受害者" },
+    { n: 96, w: "video", ipa: "/ˈvɪdiəʊ/", m: "n. 电视，视频" },
+    { n: 97, w: "offend", ipa: "/əˈfend/", m: "v. 冒犯，触犯" },
+    { n: 98, w: "bother", ipa: "/ˈbɒðə(r)/", m: "v. 打扰，麻烦" },
+    { n: 99, w: "interfere", ipa: "/ˌɪntəˈfɪə(r)/", m: "v. 干涉，干扰，妨碍" },
+    { n: 100, w: "internal", ipa: "/ɪnˈtɜːnl/", m: "a. 内部的，国内的" },
+    { n: 101, w: "beforehand", ipa: "/bɪˈfɔːhænd/", m: "ad. 预先，事先" },
+    { n: 102, w: "racial", ipa: "/ˈreɪʃl/", m: "a. 人种的，种族的" },
+    { n: 103, w: "radiation", ipa: "/ˌreɪdiˈeɪʃn/", m: "n. 放射物，辐射" },
+    { n: 104, w: "radical", ipa: "/ˈrædɪkl/", m: "a. 根本的；激进的" },
+    { n: 105, w: "range", ipa: "/reɪndʒ/", m: "n. 幅度，范围 v. 变动" },
+    { n: 106, w: "wonder", ipa: "/ˈwʌndə(r)/", m: "n. 惊奇，奇迹 v. 想知道" },
+    { n: 107, w: "isolate", ipa: "/ˈaɪsəleɪt/", m: "vt. 使隔离，使孤立" },
+    { n: 108, w: "issue", ipa: "/ˈɪʃuː/", m: "n. 问题，（报刊）一期" },
+    { n: 109, w: "hook", ipa: "/hʊk/", m: "n. 钩 vt. 吸引" },
+    { n: 110, w: "adequate", ipa: "/ˈædɪkwət/", m: "a. 适当的；足够的" },
+    { n: 111, w: "adhere", ipa: "/ədˈhɪə(r)/", m: "vi. 粘附，附着；遵守" },
+    { n: 112, w: "ban", ipa: "/bæn/", m: "vt. 取缔，禁止" },
+    { n: 113, w: "capture", ipa: "/ˈkæptʃə(r)/", m: "vt. 俘虏，捕获" },
+    { n: 114, w: "valid", ipa: "/ˈvælɪd/", m: "a. 有效的，有根据的" },
+    { n: 115, w: "consistent", ipa: "/kənˈsɪstənt/", m: "a. 坚定的；一致的" },
+    { n: 116, w: "continuous", ipa: "/kənˈtɪnjuəs/", m: "a. 连续的，持续的" },
+    { n: 117, w: "continual", ipa: "/kənˈtɪnjuəl/", m: "a. 不断的，频繁的" },
+    { n: 118, w: "explode", ipa: "/ɪkˈspləʊd/", m: "v. 爆炸；爆发；激增" },
+    { n: 119, w: "exploit", ipa: "/ɪkˈsplɔɪt/", m: "v. 剥削；利用，开采" },
+    { n: 120, w: "explore", ipa: "/ɪkˈsplɔː(r)/", m: "v. 勘探" },
+    { n: 121, w: "explosion", ipa: "/ɪkˈspləʊʒn/", m: "n. 爆炸；爆发；激增" },
+    { n: 122, w: "remote", ipa: "/rɪˈməʊt/", m: "a. 遥远的，偏僻的" },
+    { n: 123, w: "removal", ipa: "/rɪˈmuːvl/", m: "n. 除去，消除" },
+    { n: 124, w: "render", ipa: "/ˈrendə(r)/", m: "vt. 使得，致使" },
+    { n: 125, w: "idle", ipa: "/ˈaɪdl/", m: "a. 懒散的，无所事事的" },
+    { n: 126, w: "identify", ipa: "/aɪˈdentɪfaɪ/", m: "vt. 认出，鉴定" },
+    { n: 127, w: "identity", ipa: "/aɪˈdentəti/", m: "n. 身份；个性，特性" },
+    { n: 128, w: "poverty", ipa: "/ˈpɒvəti/", m: "n. 贫穷" },
+    { n: 129, w: "resistant", ipa: "/rɪˈzɪstənt/", m: "a. (to) 抵抗的" },
+    { n: 130, w: "resolve", ipa: "/rɪˈzɒlv/", m: "vt. 解决；决定，决意" },
+    { n: 131, w: "bargain", ipa: "/ˈbɑːɡən/", m: "n. 便宜货 vi. 讨价还价" },
+    { n: 132, w: "coach", ipa: "/kəʊtʃ/", m: "n. 教练；长途公共汽车" },
+    { n: 133, w: "code", ipa: "/kəʊd/", m: "n. 准则，法规，密码" },
+    { n: 134, w: "adult", ipa: "/ˈædʌlt/", m: "n. 成年人" },
+    { n: 135, w: "advertise", ipa: "/ˈædvətaɪz/", m: "v. 为…做广告" },
+    { n: 136, w: "advertisement", ipa: "/ədˈvɜːtɪsmənt/", m: "n. 广告" },
+    { n: 137, w: "agency", ipa: "/ˈeɪdʒənsi/", m: "n. 代理商，经销商" },
+    { n: 138, w: "focus", ipa: "/ˈfəʊkəs/", m: "v. （使）聚集 n. 焦点" },
+    { n: 139, w: "forbid", ipa: "/fəˈbɪd/", m: "vt. 不许，禁止" },
+    { n: 140, w: "debate", ipa: "/dɪˈbeɪt/", m: "n./v. 辩论，争论" },
+    { n: 141, w: "debt", ipa: "/det/", m: "n. 欠债" },
+    { n: 142, w: "decade", ipa: "/ˈdekeɪd/", m: "n. 十年" },
+    { n: 143, w: "encounter", ipa: "/ɪnˈkaʊntə(r)/", m: "vt./n. 遭遇，遭到" },
+    { n: 144, w: "globe", ipa: "/ɡləʊb/", m: "n. 地球，世界；地球仪" },
+    { n: 145, w: "global", ipa: "/ˈɡləʊbl/", m: "a. 全球的；总的" },
+    { n: 146, w: "scan", ipa: "/skæn/", m: "vt. 细看；扫描；浏览" },
+    { n: 147, w: "significance", ipa: "/sɪɡˈnɪfɪkəns/", m: "n. 意义；重要性" },
+    { n: 148, w: "subsequent", ipa: "/ˈsʌbsɪkwənt/", m: "a. 随后的，后来的" },
+    { n: 149, w: "virtual", ipa: "/ˈvɜːtʃuəl/", m: "a. 实际上的，事实上的" },
+    { n: 150, w: "portion", ipa: "/ˈpɔːʃn/", m: "n. 一部分" },
+    { n: 151, w: "target", ipa: "/ˈtɑːɡɪt/", m: "n. 目标，靶子 vt. 瞄准" },
+    { n: 152, w: "decline", ipa: "/dɪˈklaɪn/", m: "v. 拒绝，谢绝；下降" },
+    { n: 153, w: "likelihood", ipa: "/ˈlaɪklihʊd/", m: "n. 可能，可能性" },
+    { n: 154, w: "emphasize", ipa: "/ˈemfəsaɪz/", m: "vt. 强调，着重" },
+    { n: 155, w: "emotion", ipa: "/ɪˈməʊʃn/", m: "n. 情感，感情" },
+    { n: 156, w: "emotional", ipa: "/ɪˈməʊʃənl/", m: "a. 感情的，情绪的" },
+    { n: 157, w: "awful", ipa: "/ˈɔːfl/", m: "a. 极坏的，可怕的" },
+    { n: 158, w: "clue", ipa: "/kluː/", m: "n. 线索，提示" },
+    { n: 159, w: "collision", ipa: "/kəˈlɪʒn/", m: "n. 碰撞，冲突" },
+    { n: 160, w: "device", ipa: "/dɪˈvaɪs/", m: "n. 装置，设备" },
+    { n: 161, w: "devise", ipa: "/dɪˈvaɪz/", m: "vt. 发明，策划，想出" },
+    { n: 162, w: "inevitable", ipa: "/ɪnˈevɪtəbl/", m: "a. 不可避免的" },
+    { n: 163, w: "necessity", ipa: "/nəˈsesəti/", m: "n. 必需品；必要性" },
+    { n: 164, w: "previous", ipa: "/ˈpriːviəs/", m: "a. 先，前，以前的" },
+    { n: 165, w: "provision", ipa: "/prəˈvɪʒn/", m: "n. [pl.] 口粮；准备" },
+    { n: 166, w: "pursue", ipa: "/pəˈsjuː/", m: "vt. 追逐；追求；从事" },
+    { n: 167, w: "substitute", ipa: "/ˈsʌbstɪtjuːt/", m: "n. 代用品 vt. 代替" },
+    { n: 168, w: "deserve", ipa: "/dɪˈzɜːv/", m: "vt. 应受，应得，值得" },
+    { n: 169, w: "discrimination", ipa: "/dɪˌskrɪmɪˈneɪʃn/", m: "n. 歧视；辨别力" },
+    { n: 170, w: "professional", ipa: "/prəˈfeʃənl/", m: "a. 职业的，专门的" },
+    { n: 171, w: "secure", ipa: "/sɪˈkjʊə(r)/", m: "a. 安全的，可靠的" },
+    { n: 172, w: "security", ipa: "/sɪˈkjʊərəti/", m: "n. 安全，保障" },
+    { n: 173, w: "scratch", ipa: "/skrætʃ/", m: "v./n. 抓，搔，扒" },
+    { n: 174, w: "talent", ipa: "/ˈtælənt/", m: "n. 才能，天资；人才" },
+    { n: 175, w: "insurance", ipa: "/ɪnˈʃʊərəns/", m: "n. 保险，保险费" },
+    { n: 176, w: "insure", ipa: "/ɪnˈʃʊə(r)/", m: "vt. 给…保险，保证，确保" },
+    { n: 177, w: "nevertheless", ipa: "/ˌnevəðəˈles/", m: "ad. 仍然，然而" },
+    { n: 178, w: "neutral", ipa: "/ˈnjuːtrəl/", m: "a. 中立的，中性的" },
+    { n: 179, w: "spot", ipa: "/spɒt/", m: "n. 地点；斑点 vt. 认出，发现" },
+    { n: 180, w: "spray", ipa: "/spreɪ/", m: "v. 喷，（使）溅散" },
+    { n: 181, w: "medium", ipa: "/ˈmiːdiəm/", m: "a. 中等的 n. 媒介物" },
+    { n: 182, w: "media", ipa: "/ˈmiːdiə/", m: "n. 新闻传媒" },
+    { n: 183, w: "automatic", ipa: "/ˌɔːtəˈmætɪk/", m: "a. 自动的" },
+    { n: 184, w: "compete", ipa: "/kəmˈpiːt/", m: "vi. 竞争，比赛" },
+    { n: 185, w: "competent", ipa: "/ˈkɒmpɪtənt/", m: "a. 有能力的，能胜任" },
+    { n: 186, w: "competition", ipa: "/ˌkɒmpəˈtɪʃn/", m: "n. 竞争，比赛" },
+    { n: 187, w: "distribute", ipa: "/dɪˈstrɪbjuːt/", m: "vt. 分发" },
+    { n: 188, w: "disturb", ipa: "/dɪˈstɜːb/", m: "vt. 打搅，妨碍" },
+    { n: 189, w: "infer", ipa: "/ɪnˈfɜː(r)/", m: "v. 推论，推断" },
+    { n: 190, w: "integrate", ipa: "/ˈɪntɪɡreɪt/", m: "v. （使）成为一体" },
+    { n: 191, w: "promote", ipa: "/prəˈməʊt/", m: "vt. 促进；提升" },
+    { n: 192, w: "region", ipa: "/ˈriːdʒən/", m: "n. 地区；范围；幅度" },
+    { n: 193, w: "register", ipa: "/ˈredʒɪstə(r)/", m: "v./n. 登记，注册" },
+    { n: 194, w: "stable", ipa: "/ˈsteɪbl/", m: "a. 稳定的" },
+    { n: 195, w: "sophisticated", ipa: "/səˈfɪstɪkeɪtɪd/", m: "a. 精密的，老练的" },
+    { n: 196, w: "cancel", ipa: "/ˈkænsl/", m: "vt. 取消，废除" },
+    { n: 197, w: "variable", ipa: "/ˈveəriəbl/", m: "a. 易变的，可变的" },
+    { n: 198, w: "prospect", ipa: "/ˈprɒspekt/", m: "n. 前景，前途；景象" },
+    { n: 199, w: "prosperity", ipa: "/prɒˈsperəti/", m: "n. 兴旺，繁荣" },
+    { n: 200, w: "aspect", ipa: "/ˈæspekt/", m: "n. 方面；朝向；面貌" },
+    { n: 201, w: "cope", ipa: "/kəʊp/", m: "vi. (with) 应付，处理" },
+    { n: 202, w: "core", ipa: "/kɔː(r)/", m: "n. 核心" },
+    { n: 203, w: "maintain", ipa: "/meɪnˈteɪn/", m: "vt. 维持，保持" },
+    { n: 204, w: "discipline", ipa: "/ˈdɪsəplɪn/", m: "n. 纪律；惩罚；学科" },
+    { n: 205, w: "domestic", ipa: "/dəˈmestɪk/", m: "a. 国内的；家用的" },
+    { n: 206, w: "constant", ipa: "/ˈkɒnstənt/", m: "a. 不变的 n. 常数" },
+    { n: 207, w: "authority", ipa: "/ɔːˈθɒrəti/", m: "n. 权威；当局" },
+    { n: 208, w: "audio", ipa: "/ˈɔːdiəʊ/", m: "a. 听觉的" },
+    { n: 209, w: "attitude", ipa: "/ˈætɪtjuːd/", m: "n. 态度" },
+    { n: 210, w: "community", ipa: "/kəˈmjuːnəti/", m: "n. 社区，社会" },
+    { n: 211, w: "commit", ipa: "/kəˈmɪt/", m: "vt. 犯（错误，罪行等）" },
+    { n: 212, w: "comment", ipa: "/ˈkɒment/", m: "n./vt. 评论" },
+    { n: 213, w: "distinguish", ipa: "/dɪˈstɪŋɡwɪʃ/", m: "vt. 区分，辨别" },
+    { n: 214, w: "distress", ipa: "/dɪˈstres/", m: "n. 痛苦，悲伤 vt. 使痛苦" },
+    { n: 215, w: "facility", ipa: "/fəˈsɪləti/", m: "n. 设备，设施" },
+    { n: 216, w: "faculty", ipa: "/ˈfæklti/", m: "n. 全体教职员工" },
+    { n: 217, w: "mood", ipa: "/muːd/", m: "n. 心情，情绪；语气" },
+    { n: 218, w: "moral", ipa: "/ˈmɒrəl/", m: "a. 道德上的，有道德的" },
+    { n: 219, w: "prominent", ipa: "/ˈprɒmɪnənt/", m: "a. 突出的" },
+    { n: 220, w: "substance", ipa: "/ˈsʌbstəns/", m: "n. 物质；实质" },
+    { n: 221, w: "substantial", ipa: "/səbˈstænʃl/", m: "a. 可观的；牢固的" },
+    { n: 222, w: "prompt", ipa: "/prɒmpt/", m: "vt. 促使 a. 敏捷的，及时" },
+    { n: 223, w: "vivid", ipa: "/ˈvɪvɪd/", m: "a. 生动的" },
+    { n: 224, w: "vocabulary", ipa: "/vəˈkæbjələri/", m: "n. 词汇；词汇表" },
+    { n: 225, w: "version", ipa: "/ˈvɜːʃn/", m: "n. 版本，译本；说法" },
+    { n: 226, w: "yield", ipa: "/jiːld/", m: "vi. (to) 屈服于；让出 n. 产量" },
+    { n: 227, w: "zone", ipa: "/zəʊn/", m: "n. 地区，区域" },
+    { n: 228, w: "strategy", ipa: "/ˈstrætədʒi/", m: "n. 战略，策略" },
+    { n: 229, w: "strategic", ipa: "/strəˈtiːdʒɪk/", m: "a. 战略的，关键的" },
+    { n: 230, w: "available", ipa: "/əˈveɪləbl/", m: "a. 现成可用的；可得到的" },
+    { n: 231, w: "comparable", ipa: "/ˈkɒmpərəbl/", m: "a. 可比较的" },
+    { n: 232, w: "comparative", ipa: "/kəmˈpærətɪv/", m: "a. 比较的，相对的" },
+    { n: 233, w: "data", ipa: "/ˈdeɪtə/", m: "n. 数据，资料" },
+    { n: 234, w: "dive", ipa: "/daɪv/", m: "vi. 跳水，潜水" },
+    { n: 235, w: "diverse", ipa: "/daɪˈvɜːs/", m: "a. 不同的，多种多样的" },
+    { n: 236, w: "entitle", ipa: "/ɪnˈtaɪtl/", m: "vt. 给…权利，给…资格" },
+    { n: 237, w: "regulate", ipa: "/ˈreɡjuleɪt/", m: "vt. 管理，调节" },
+    { n: 238, w: "release", ipa: "/rɪˈliːs/", m: "vt./n. 释放，排放；解释" },
+    { n: 239, w: "exaggerate", ipa: "/ɪɡˈzædʒəreɪt/", m: "v. 夸大，夸张" },
+    { n: 240, w: "evil", ipa: "/ˈiːvl/", m: "a. 邪恶的，坏的" },
+    { n: 241, w: "shrink", ipa: "/ʃrɪŋk/", m: "vi. 起皱，收缩；退缩" },
+    { n: 242, w: "subway", ipa: "/ˈsʌbweɪ/", m: "n. 地铁" },
+    { n: 243, w: "survey", ipa: "/ˈsɜːveɪ/", m: "n./vt. 调查，勘测" },
+    { n: 244, w: "wealthy", ipa: "/ˈwelθi/", m: "a. 富裕的" },
+    { n: 245, w: "adjust", ipa: "/əˈdʒʌst/", m: "v. 调整，调节" },
+    { n: 246, w: "attach", ipa: "/əˈtætʃ/", m: "vt. 系，贴；使附属" },
+    { n: 247, w: "profit", ipa: "/ˈprɒfɪt/", m: "n. 利润，益处；v. 有益于" },
+    { n: 248, w: "profitable", ipa: "/ˈprɒfɪtəbl/", m: "a. 有利可图的" },
+    { n: 249, w: "reinforce", ipa: "/ˌriːɪnˈfɔːs/", m: "vt. 增强，加强" },
+    { n: 250, w: "reject", ipa: "/rɪˈdʒekt/", m: "vt. 拒绝" },
+    { n: 251, w: "fatal", ipa: "/ˈfeɪtl/", m: "a. 致命的；重大的" },
+    { n: 252, w: "humble", ipa: "/ˈhʌmbl/", m: "a. 谦逊的；谦虚的" },
+    { n: 253, w: "illegal", ipa: "/ɪˈliːɡl/", m: "a. 不合法的，非法的" },
+    { n: 254, w: "award", ipa: "/əˈwɔːd/", m: "vt. 授予，判给 n. 奖品" },
+    { n: 255, w: "aware", ipa: "/əˈweə(r)/", m: "a. 意识到的" },
+    { n: 256, w: "column", ipa: "/ˈkɒləm/", m: "n. 柱；栏，专栏" },
+    { n: 257, w: "deaf", ipa: "/def/", m: "a. 聋的；不愿听的" },
+    { n: 258, w: "decorate", ipa: "/ˈdekəreɪt/", m: "vt. 装饰，装潢" },
+    { n: 259, w: "principal", ipa: "/ˈprɪnsəpl/", m: "a. 最重要的 n. 负责人" },
+    { n: 260, w: "principle", ipa: "/ˈprɪnsəpl/", m: "n. 原则，原理" },
+    { n: 261, w: "prior", ipa: "/ˈpraɪə(r)/", m: "a. 优先的，在前的" },
+    { n: 262, w: "priority", ipa: "/praɪˈɒrəti/", m: "n. 优先，重点" },
+    { n: 263, w: "prohibit", ipa: "/prəˈhɪbɪt/", m: "vt. 禁止，不准" },
+    { n: 264, w: "remarkable", ipa: "/rɪˈmɑːkəbl/", m: "a. 值得注意的，异常的" },
+    { n: 265, w: "remedy", ipa: "/ˈremədi/", m: "n./vt. 补救，医治，治疗" },
+    { n: 266, w: "vain", ipa: "/veɪn/", m: "a. 徒劳的，无效的" },
+    { n: 267, w: "undertake", ipa: "/ˌʌndəˈteɪk/", m: "vt. 承担，着手做" },
+    { n: 268, w: "unique", ipa: "/juˈniːk/", m: "a. 唯一的" },
+    { n: 269, w: "odd", ipa: "/ɒd/", m: "a. 奇特的，古怪的；奇数的" },
+    { n: 270, w: "opponent", ipa: "/əˈpəʊnənt/", m: "n. 对手，敌手" },
+    { n: 271, w: "opportunity", ipa: "/ˌɒpəˈtjuːnəti/", m: "n. 机会，时机" },
+    { n: 272, w: "semester", ipa: "/sɪˈmestə(r)/", m: "n. 学期；半年" },
+    { n: 273, w: "terminal", ipa: "/ˈtɜːmɪnl/", m: "a. 末端的 n. 终点" },
+    { n: 274, w: "territory", ipa: "/ˈterətri/", m: "n. 领土" },
+    { n: 275, w: "arbitrary", ipa: "/ˈɑːbɪtrəri/", m: "a. 随意的，武断的" },
+    { n: 276, w: "architect", ipa: "/ˈɑːkɪtekt/", m: "n. 建筑师" },
+    { n: 277, w: "architecture", ipa: "/ˈɑːkɪtektʃə(r)/", m: "n. 建筑学" },
+    { n: 278, w: "biology", ipa: "/baɪˈɒlədʒi/", m: "n. 生物学" },
+    { n: 279, w: "geography", ipa: "/dʒiˈɒɡrəfi/", m: "n. 地理（学）" },
+    { n: 280, w: "entertainment", ipa: "/ˌentəˈteɪnmənt/", m: "n. 娱乐；招待" },
+    { n: 281, w: "enthusiasm", ipa: "/ɪnˈθjuːziæzəm/", m: "n. 热情，热心" },
+    { n: 282, w: "entry", ipa: "/ˈentri/", m: "n. 进入，入口处；参赛的人" },
+    { n: 283, w: "environment", ipa: "/ɪnˈvaɪrənmənt/", m: "n. 环境" },
+    { n: 284, w: "episode", ipa: "/ˈepɪsəʊd/", m: "n. 插曲，片段" },
+    { n: 285, w: "restrain", ipa: "/rɪˈstreɪn/", m: "vt. 阻止，抑制" },
+    { n: 286, w: "restraint", ipa: "/rɪˈstreɪnt/", m: "n. 抑制，限制" },
+    { n: 287, w: "severe", ipa: "/sɪˈvɪə(r)/", m: "a. 严重的" },
+    { n: 288, w: "stuff", ipa: "/stʌf/", m: "n. 原料，材料 vt. 填进" },
+    { n: 289, w: "temporary", ipa: "/ˈtemprəri/", m: "a. 暂时的，临时的" },
+    { n: 290, w: "temptation", ipa: "/tempˈteɪʃn/", m: "n. 诱惑，引诱" },
+    { n: 291, w: "terror", ipa: "/ˈterə(r)/", m: "n. 恐怖" },
+    { n: 292, w: "arise", ipa: "/əˈraɪz/", m: "vi. 产生，出现，发生；起身" },
+    { n: 293, w: "arouse", ipa: "/əˈraʊz/", m: "vt. 引起，激起；唤醒" },
+    { n: 294, w: "burden", ipa: "/ˈbɜːdn/", m: "n. 重担，负荷" },
+    { n: 295, w: "marvelous", ipa: "/ˈmɑːvələs/", m: "a. 奇迹般的，惊人的" },
+    { n: 296, w: "massive", ipa: "/ˈmæsɪv/", m: "a. 大的，大量的，大块的" },
+    { n: 297, w: "mature", ipa: "/məˈtʃʊə(r)/", m: "a. 成熟的" },
+    { n: 298, w: "maximum", ipa: "/ˈmæksɪməm/", m: "a. 最高的，最大的" },
+    { n: 299, w: "minimum", ipa: "/ˈmɪnɪməm/", m: "a. 最低的，最小的" },
+    { n: 300, w: "spur", ipa: "/spɜː(r)/", m: "n./vt. 刺激，激励" },
+    { n: 301, w: "triumph", ipa: "/ˈtraɪʌmf/", m: "n. 胜利，成功" },
+    { n: 302, w: "tuition", ipa: "/tjuˈɪʃn/", m: "n. 学费" },
+    { n: 303, w: "twist", ipa: "/twɪst/", m: "vt. 使缠绕；转动；扭歪" },
+    { n: 304, w: "undergraduate", ipa: "/ˌʌndəˈɡrædʒuət/", m: "n. 本科生" },
+    { n: 305, w: "universal", ipa: "/ˌjuːnɪˈvɜːsl/", m: "a. 普遍的，通用的" },
+    { n: 306, w: "universe", ipa: "/ˈjuːnɪvɜːs/", m: "n. 宇宙" },
+    { n: 307, w: "via", ipa: "/ˈvaɪə/", m: "prep. 经由，经过，通过" },
+    { n: 308, w: "virus", ipa: "/ˈvaɪrəs/", m: "n. 病毒" },
+    { n: 309, w: "voluntary", ipa: "/ˈvɒləntri/", m: "a. 自愿的" },
+    { n: 310, w: "volunteer", ipa: "/ˌvɒlənˈtɪə(r)/", m: "n. 志愿者 v. 自愿" },
+    { n: 311, w: "vote", ipa: "/vəʊt/", m: "v. 选举 n. 选票" },
+    { n: 312, w: "appoint", ipa: "/əˈpɔɪnt/", m: "vt. 任命，委派" },
+    { n: 313, w: "approach", ipa: "/əˈprəʊtʃ/", m: "v. 靠近，接近 n. 途径" },
+    { n: 314, w: "appropriate", ipa: "/əˈprəʊpriət/", m: "a. 适当的" },
+    { n: 315, w: "bunch", ipa: "/bʌntʃ/", m: "n. 群，伙；束，串" },
+    { n: 316, w: "ceremony", ipa: "/ˈserəməni/", m: "n. 典礼，仪式" },
+    { n: 317, w: "discount", ipa: "/ˈdɪskaʊnt/", m: "n. （价格）折扣" },
+    { n: 318, w: "display", ipa: "/dɪˈspleɪ/", m: "n./vt. 陈列，展览" },
+    { n: 319, w: "equivalent", ipa: "/ɪˈkwɪvələnt/", m: "a. 相等的 n. 相等物" },
+    { n: 320, w: "grateful", ipa: "/ˈɡreɪtfl/", m: "a. 感激的" },
+    { n: 321, w: "gratitude", ipa: "/ˈɡrætɪtjuːd/", m: "n. 感激" },
+    { n: 322, w: "horrible", ipa: "/ˈhɒrəbl/", m: "a. 可怕的" },
+    { n: 323, w: "Internet", ipa: "/ˈɪntənet/", m: "n. 国际互联网，因特网" },
+    { n: 324, w: "interpret", ipa: "/ɪnˈtɜːprɪt/", m: "v. 翻译，解释" },
+    { n: 325, w: "interpretation", ipa: "/ɪnˌtɜːprɪˈteɪʃn/", m: "n. 解释，说明" },
+    { n: 326, w: "leak", ipa: "/liːk/", m: "v. 漏，渗出" },
+    { n: 327, w: "lean", ipa: "/liːn/", m: "vi. 倾斜，倚，靠" },
+    { n: 328, w: "leap", ipa: "/liːp/", m: "vi. 跳跃" },
+    { n: 329, w: "modify", ipa: "/ˈmɒdɪfaɪ/", m: "vt. 修改" },
+    { n: 330, w: "applicable", ipa: "/əˈplɪkəbl/", m: "a. 可应用的，适当的" },
+    { n: 331, w: "applicant", ipa: "/ˈæplɪkənt/", m: "n. 申请人" },
+    { n: 332, w: "conservation", ipa: "/ˌkɒnsəˈveɪʃn/", m: "n. 保存，保护" },
+    { n: 333, w: "passion", ipa: "/ˈpæʃn/", m: "n. 激情，热情" },
+    { n: 334, w: "passive", ipa: "/ˈpæsɪv/", m: "a. 被动的，消极的" },
+    { n: 335, w: "peak", ipa: "/piːk/", m: "n. 山峰，顶点" },
+    { n: 336, w: "phenomenon", ipa: "/fəˈnɒmɪnən/", m: "n. 现象" },
+    { n: 337, w: "reluctant", ipa: "/rɪˈlʌktənt/", m: "a. 不情愿的，勉强的" },
+    { n: 338, w: "rely", ipa: "/rɪˈlaɪ/", m: "vi. (on, upon) 依赖，指望" },
+    { n: 339, w: "relevant", ipa: "/ˈreləvənt/", m: "a. 有关的，切题的" },
+    { n: 340, w: "reliable", ipa: "/rɪˈlaɪəbl/", m: "a. 可靠的" },
+    { n: 341, w: "relief", ipa: "/rɪˈliːf/", m: "n. 轻松，宽慰；减轻" },
+    { n: 342, w: "reputation", ipa: "/ˌrepjuˈteɪʃn/", m: "n. 名气，声誉" },
+    { n: 343, w: "rescue", ipa: "/ˈreskjuː/", m: "vt./n. 营救" },
+    { n: 344, w: "sequence", ipa: "/ˈsiːkwəns/", m: "n. 连续；顺序" },
+    { n: 345, w: "sincere", ipa: "/sɪnˈsɪə(r)/", m: "a. 诚挚的，真诚的" },
+    { n: 346, w: "utilize", ipa: "/ˈjuːtəlaɪz/", m: "vt. 利用" },
+    { n: 347, w: "variation", ipa: "/ˌveəriˈeɪʃn/", m: "n. 变化，变动" },
+    { n: 348, w: "vehicle", ipa: "/ˈviːəkl/", m: "n. 交通工具，车辆" },
+    { n: 349, w: "appliance", ipa: "/əˈplaɪəns/", m: "n. 器具，器械" },
+    { n: 350, w: "consent", ipa: "/kənˈsent/", m: "n. 准许，同意 vi. 准许，同意" },
+    { n: 351, w: "evolve", ipa: "/ɪˈvɒlv/", m: "v. 演变" },
+    { n: 352, w: "evolution", ipa: "/ˌiːvəˈluːʃn/", m: "n. 演变，进化" },
+    { n: 353, w: "frustrate", ipa: "/frʌˈstreɪt/", m: "vt. 使沮丧" },
+    { n: 354, w: "guarantee", ipa: "/ˌɡærənˈtiː/", m: "vt./n. 保证" },
+    { n: 355, w: "guilty", ipa: "/ˈɡɪlti/", m: "a. 内疚的；有罪的" },
+    { n: 356, w: "modest", ipa: "/ˈmɒdɪst/", m: "a. 谦虚的" },
+    { n: 357, w: "participate", ipa: "/pɑːˈtɪsɪpeɪt/", m: "v. (in) 参与，参加" },
+    { n: 358, w: "particularly", ipa: "/pəˈtɪkjələli/", m: "ad. 特别，尤其" },
+    { n: 359, w: "respond", ipa: "/rɪˈspɒnd/", m: "vi. 回答，答复；反应" },
+    { n: 360, w: "response", ipa: "/rɪˈspɒns/", m: "n. 回答，答复；反应" },
+    { n: 361, w: "sensible", ipa: "/ˈsensəbl/", m: "a. 明智的" },
+    { n: 362, w: "sensitive", ipa: "/ˈsensətɪv/", m: "a. 敏感的，灵敏的" },
+    { n: 363, w: "tremendous", ipa: "/trəˈmendəs/", m: "a. 巨大的；精彩的" },
+    { n: 364, w: "trend", ipa: "/trend/", m: "n. 趋向，倾向" },
+    { n: 365, w: "trial", ipa: "/ˈtraɪəl/", m: "n. 审讯；试验" },
+    { n: 366, w: "apparent", ipa: "/əˈpærənt/", m: "a. 显然的，明白的" },
+    { n: 367, w: "appetite", ipa: "/ˈæpɪtaɪt/", m: "n. 胃口；欲望" },
+    { n: 368, w: "deposit", ipa: "/dɪˈpɒzɪt/", m: "n. 存款，定金 v. 存放" },
+    { n: 369, w: "deputy", ipa: "/ˈdepjuti/", m: "n. 副职，代表" },
+    { n: 370, w: "derive", ipa: "/dɪˈraɪv/", m: "vt. 取得，得到；起源于" },
+    { n: 371, w: "mission", ipa: "/ˈmɪʃn/", m: "n. 使命；代表团" },
+    { n: 372, w: "noticeable", ipa: "/ˈnəʊtɪsəbl/", m: "a. 显而易见的" },
+    { n: 373, w: "notify", ipa: "/ˈnəʊtɪfaɪ/", m: "vt. 通知，告知" },
+    { n: 374, w: "notion", ipa: "/ˈnəʊʃn/", m: "n. 概念；意图，想法" },
+    { n: 375, w: "resemble", ipa: "/rɪˈzembl/", m: "vt. 像，类似于" },
+    { n: 376, w: "reveal", ipa: "/rɪˈviːl/", m: "vt. 揭露" },
+    { n: 377, w: "revenue", ipa: "/ˈrevənjuː/", m: "n. 收入，岁入；税收" },
+    { n: 378, w: "shelter", ipa: "/ˈʃeltə(r)/", m: "n. 掩蔽处；住所" },
+    { n: 379, w: "vital", ipa: "/ˈvaɪtl/", m: "a. 重要的；致命的，生命的" },
+    { n: 380, w: "urban", ipa: "/ˈɜːbən/", m: "a. 城市的" },
+    { n: 381, w: "urge", ipa: "/ɜːdʒ/", m: "vt. 鼓励，激励" },
+    { n: 382, w: "urgent", ipa: "/ˈɜːdʒənt/", m: "a. 急迫的，紧急的" },
+    { n: 383, w: "usage", ipa: "/ˈjuːsɪdʒ/", m: "n. 使用，用法" },
+    { n: 384, w: "violence", ipa: "/ˈvaɪələns/", m: "n. 强力，暴力" },
+    { n: 385, w: "violent", ipa: "/ˈvaɪələnt/", m: "a. 强暴的" },
+    { n: 386, w: "welfare", ipa: "/ˈwelfeə(r)/", m: "n. 福利" },
+    { n: 387, w: "whereas", ipa: "/ˌweərˈæz/", m: "conj. 然而，但是，尽管" },
+    { n: 388, w: "essential", ipa: "/ɪˈsenʃl/", m: "a. 必不可少的；本质的" },
+    { n: 389, w: "estimate", ipa: "/ˈestɪmeɪt/", m: "n./vt. 估计，估量" },
+    { n: 390, w: "evaluate", ipa: "/ɪˈvæljueɪt/", m: "vt. 评估，评价" },
+    { n: 391, w: "exceed", ipa: "/ɪkˈsiːd/", m: "vt. 超过，超出" },
+    { n: 392, w: "exceedingly", ipa: "/ɪkˈsiːdɪŋli/", m: "ad. 非常，极其" },
+    { n: 393, w: "exclude", ipa: "/ɪkˈskluːd/", m: "vt. 把…排斥在外，不包括" },
+    { n: 394, w: "flexible", ipa: "/ˈfleksəbl/", m: "a. 易弯曲的" },
+    { n: 395, w: "flock", ipa: "/flɒk/", m: "n. 一群；一伙人" },
+    { n: 396, w: "harmony", ipa: "/ˈhɑːməni/", m: "n. 和谐，融洽" },
+    { n: 397, w: "index", ipa: "/ˈɪndeks/", m: "n. 索引，标志" },
+    { n: 398, w: "infect", ipa: "/ɪnˈfekt/", m: "v. 传染" },
+    { n: 399, w: "inferior", ipa: "/ɪnˈfɪəriə(r)/", m: "a. 劣等的，次的，下级的" },
+    { n: 400, w: "ingredient", ipa: "/ɪnˈɡriːdiənt/", m: "n. 组成部分" },
+    { n: 401, w: "inhabitant", ipa: "/ɪnˈhæbɪtənt/", m: "n. 居民" },
+    { n: 402, w: "jam", ipa: "/dʒæm/", m: "n. 果酱；拥挤，堵塞" },
+    { n: 403, w: "joint", ipa: "/dʒɔɪnt/", m: "a. 连接的；共同的" },
+    { n: 404, w: "junior", ipa: "/ˈdʒuːniə(r)/", m: "a. 年少的；资历较浅的" },
+    { n: 405, w: "launch", ipa: "/lɔːntʃ/", m: "vt. 发动，发起" },
+    { n: 406, w: "luxury", ipa: "/ˈlʌkʃəri/", m: "n. 奢侈；奢侈品" },
+    { n: 407, w: "male", ipa: "/meɪl/", m: "a. 男性的，雄的" },
+    { n: 408, w: "female", ipa: "/ˈfiːmeɪl/", m: "a. 女性的，雌的" },
+    { n: 409, w: "manual", ipa: "/ˈmænjuəl/", m: "a. 手工做的 n. 手册" },
+    { n: 410, w: "manufacture", ipa: "/ˌmænjuˈfæktʃə(r)/", m: "vt./n. 制造，加工" },
+    { n: 411, w: "negative", ipa: "/ˈneɡətɪv/", m: "a. 否定的，消极的" },
+    { n: 412, w: "origin", ipa: "/ˈɒrɪdʒɪn/", m: "n. 起源，出身" },
+    { n: 413, w: "prevail", ipa: "/prɪˈveɪl/", m: "vi. 流行，盛行" },
+    { n: 414, w: "quit", ipa: "/kwɪt/", m: "v. 停止" },
+    { n: 415, w: "recreation", ipa: "/ˌrekriˈeɪʃn/", m: "n. 娱乐活动" },
+    { n: 416, w: "recruit", ipa: "/rɪˈkruːt/", m: "vt. 招募，吸引" },
+    { n: 417, w: "rival", ipa: "/ˈraɪvl/", m: "n. 竞争对手，敌手" },
+    { n: 418, w: "theme", ipa: "/θiːm/", m: "n. 主题" },
+    { n: 419, w: "label", ipa: "/ˈleɪbl/", m: "n. 标签" },
+    { n: 420, w: "mere", ipa: "/mɪə(r)/", m: "a. 仅仅的，只不过的；纯粹" },
+    { n: 421, w: "numerous", ipa: "/ˈnjuːmərəs/", m: "a. 众多的，许多的" },
+    { n: 422, w: "passport", ipa: "/ˈpɑːspɔːt/", m: "n. 护照" },
+    { n: 423, w: "prescribe", ipa: "/prɪˈskraɪb/", m: "vt. 开药，采用…疗法" },
+    { n: 424, w: "ridiculous", ipa: "/rɪˈdɪkjələs/", m: "a. 可笑的，荒谬的" },
+    { n: 425, w: "withstand", ipa: "/wɪðˈstænd/", m: "vt. 经受，承受" },
+    { n: 426, w: "witness", ipa: "/ˈwɪtnəs/", m: "n. 目击者；证据 vt. 注意" },
+    { n: 427, w: "withdraw", ipa: "/wɪðˈdrɔː/", m: "v. 收回，撤销" },
+    { n: 428, w: "software", ipa: "/ˈsɒftweə(r)/", m: "n. 软件" },
+    { n: 429, w: "solar", ipa: "/ˈsəʊlə(r)/", m: "a. 太阳的" },
+    { n: 430, w: "lunar", ipa: "/ˈluːnə(r)/", m: "a. 月的，月球的" },
+    { n: 431, w: "submit", ipa: "/səbˈmɪt/", m: "vi. (to) 屈服，听从" },
+    { n: 432, w: "title", ipa: "/ˈtaɪtl/", m: "n. 题目，标题" },
+    { n: 433, w: "tone", ipa: "/təʊn/", m: "n. 语气，音调" },
+    { n: 434, w: "durable", ipa: "/ˈdjʊərəbl/", m: "a. 耐用的，持久的" },
+    { n: 435, w: "legislation", ipa: "/ˌledʒɪsˈleɪʃn/", m: "n. 法律，法规；立法" },
+    { n: 436, w: "leisure", ipa: "/ˈleʒə(r)/", m: "n. 闲暇；悠闲" },
+    { n: 437, w: "earthquake", ipa: "/ˈɜːθkweɪk/", m: "n. 地震" },
+    { n: 438, w: "faulty", ipa: "/ˈfɔːlti/", m: "a. 有错误的，有缺点的" },
+    { n: 439, w: "favorable", ipa: "/ˈfeɪvərəbl/", m: "a. 称赞的；有利的" },
+    { n: 440, w: "favorite", ipa: "/ˈfeɪvərɪt/", m: "a. 特别受喜欢的 n. 喜爱" },
+    { n: 441, w: "gap", ipa: "/ɡæp/", m: "n. 间隔，差距" },
+    { n: 442, w: "garbage", ipa: "/ˈɡɑːbɪdʒ/", m: "n. 垃圾，废物" },
+    { n: 443, w: "gene", ipa: "/dʒiːn/", m: "n. 基因" },
+    { n: 444, w: "liberal", ipa: "/ˈlɪbərəl/", m: "a. 自由的" },
+    { n: 445, w: "license", ipa: "/ˈlaɪsns/", m: "n. 许可证，执照" },
+    { n: 446, w: "motivate", ipa: "/ˈməʊtɪveɪt/", m: "vt. 激励，激发" },
+    { n: 447, w: "generate", ipa: "/ˈdʒenəreɪt/", m: "vt. 生成，产生" },
+    { n: 448, w: "genius", ipa: "/ˈdʒiːniəs/", m: "n. 天才，天赋" },
+    { n: 449, w: "genuine", ipa: "/ˈdʒenjuɪn/", m: "a. 真的，独特的" },
+    { n: 450, w: "obstacle", ipa: "/ˈɒbstəkl/", m: "n. 障碍（物），妨碍" },
+    { n: 451, w: "giant", ipa: "/ˈdʒaɪənt/", m: "a. 巨大的 n. 巨人" },
+    { n: 452, w: "household", ipa: "/ˈhaʊshəʊld/", m: "n. 家庭，户" },
+    { n: 453, w: "hook", ipa: "/hʊk/", m: "n. 钩 v. 吸引" },
+    { n: 454, w: "highlight", ipa: "/ˈhaɪlaɪt/", m: "vt. 强调，突出" },
+    { n: 455, w: "attraction", ipa: "/əˈtrækʃn/", m: "n. 吸引，吸引力" },
+    { n: 456, w: "strike", ipa: "/straɪk/", m: "n. 罢工 v. 打击，罢工" },
+    { n: 457, w: "strength", ipa: "/streŋθ/", m: "n. 力量，力气" },
+    { n: 458, w: "identification", ipa: "/aɪˌdentɪfɪˈkeɪʃn/", m: "n. 鉴别" },
+    { n: 459, w: "obligation", ipa: "/ˌɒblɪˈɡeɪʃn/", m: "n. 义务，责任" },
+    { n: 460, w: "enhance", ipa: "/ɪnˈhɑːns/", m: "vt. 提高，增强" },
+    { n: 461, w: "circumstance", ipa: "/ˈsɜːkəmstəns/", m: "n. 境况，环境" },
+    { n: 462, w: "organic", ipa: "/ɔːˈɡænɪk/", m: "a. 有机的" },
+    { n: 463, w: "evidence", ipa: "/ˈevɪdəns/", m: "n. 证据；迹象" },
+    { n: 464, w: "negotiate", ipa: "/nɪˈɡəʊʃieɪt/", m: "v. 协商，谈判" },
+    { n: 465, w: "conventional", ipa: "/kənˈvenʃənl/", m: "a. 惯例的，传统的" },
+    { n: 466, w: "outcome", ipa: "/ˈaʊtkʌm/", m: "n. 结果，成效" },
+    { n: 467, w: "fundamental", ipa: "/ˌfʌndəˈmentl/", m: "a. 根本的" },
+    { n: 468, w: "dilemma", ipa: "/dɪˈlemə/", m: "n. 窘境，困境" },
+    { n: 469, w: "impact", ipa: "/ˈɪmpækt/", m: "n./v. 影响，冲击" },
+    { n: 470, w: "federal", ipa: "/ˈfedərəl/", m: "a. 联邦的" },
+    { n: 471, w: "conclude", ipa: "/kənˈkluːd/", m: "v. 得出结论" },
+    { n: 472, w: "mutual", ipa: "/ˈmjuːtʃuəl/", m: "a. 相互的，共同的" },
+    { n: 473, w: "digital", ipa: "/ˈdɪdʒɪtl/", m: "a. 数字化的" },
+    { n: 474, w: "obvious", ipa: "/ˈɒbviəs/", m: "a. 显而易见的" },
+    { n: 475, w: "heritage", ipa: "/ˈherɪtɪdʒ/", m: "n. 文化遗产" },
+    { n: 476, w: "eliminate", ipa: "/ɪˈlɪmɪneɪt/", m: "vt. 排除，消除" },
+    { n: 477, w: "mobile", ipa: "/ˈməʊbaɪl/", m: "a. 可移动的" },
+    { n: 478, w: "context", ipa: "/ˈkɒntekst/", m: "n. 语境，背景" },
+    { n: 479, w: "feedback", ipa: "/ˈfiːdbæk/", m: "n. 反馈" },
+    { n: 480, w: "occupy", ipa: "/ˈɒkjupaɪ/", m: "vt. 占用，任职" },
+    { n: 481, w: "guideline", ipa: "/ˈɡaɪdlaɪn/", m: "n. 指导准则" },
+    { n: 482, w: "dominate", ipa: "/ˈdɒmɪneɪt/", m: "vt. 支配，掌控" },
+    { n: 483, w: "dimension", ipa: "/daɪˈmenʃn/", m: "n. 方面，维度" },
+    { n: 484, w: "initiate", ipa: "/ɪˈnɪʃieɪt/", m: "vt. 发起，创始" },
+    { n: 485, w: "access", ipa: "/ˈækses/", m: "n. 通道；使用权" },
+    { n: 486, w: "norm", ipa: "/nɔːm/", m: "n. 规范，标准" },
+    { n: 487, w: "diversity", ipa: "/daɪˈvɜːsəti/", m: "n. 多样性" },
+    { n: 488, w: "illustrate", ipa: "/ˈɪləstreɪt/", m: "vt. 阐明，举例说明" },
+    { n: 489, w: "exception", ipa: "/ɪkˈsepʃn/", m: "n. 例外" },
+    { n: 490, w: "mechanism", ipa: "/ˈmekənɪzəm/", m: "n. 方法，机制" },
+    { n: 491, w: "cultural", ipa: "/ˈkʌltʃərəl/", m: "a. 文化层面的" },
+    { n: 492, w: "occur", ipa: "/əˈkɜː(r)/", m: "vi. 发生，出现" },
+    { n: 493, w: "integrity", ipa: "/ɪnˈteɡrəti/", m: "n. 诚实，正直；完整性" },
+    { n: 494, w: "cycle", ipa: "/ˈsaɪkl/", m: "n. 循环，周期" },
+    { n: 495, w: "implement", ipa: "/ˈɪmplɪment/", m: "vt. 落实，实施" },
+    { n: 496, w: "minority", ipa: "/maɪˈnɒrəti/", m: "n. 少数群体" },
+    { n: 497, w: "analyze", ipa: "/ˈænəlaɪz/", m: "vt. 剖析，分析" },
+    { n: 498, w: "option", ipa: "/ˈɒpʃn/", m: "n. 选择" },
+    { n: 499, w: "awareness", ipa: "/əˈweənəs/", m: "n. 认知，意识" },
+    { n: 500, w: "crucial", ipa: "/ˈkruːʃl/", m: "a. 至关重要的" },
+    { n: 501, w: "journal", ipa: "/ˈdʒɜːnl/", m: "n. 学术期刊" },
+    { n: 502, w: "assignment", ipa: "/əˈsaɪnmənt/", m: "n. 课业任务" },
+    { n: 503, w: "horizon", ipa: "/həˈraɪzn/", m: "n. 眼界，地平线" },
+    { n: 504, w: "content", ipa: "/ˈkɒntent/", m: "n. 内容 a. 满足的" },
+    { n: 505, w: "majority", ipa: "/məˈdʒɒrəti/", m: "n. 大多数" },
+    { n: 506, w: "advocate", ipa: "/ˈædvəkeɪt/", m: "vt. 倡导 n. 拥护者" },
+    { n: 507, w: "elaborate", ipa: "/ɪˈlæbərət/", m: "a. 详尽的 v. 详述" },
+    { n: 508, w: "insight", ipa: "/ˈɪnsaɪt/", m: "n. 独到见解" },
+    { n: 509, w: "affect", ipa: "/əˈfekt/", m: "vt. 影响" },
+    { n: 510, w: "consequence", ipa: "/ˈkɒnsɪkwəns/", m: "n. 后果" },
+    { n: 511, w: "innovation", ipa: "/ˌɪnəˈveɪʃn/", m: "n. 创新" },
+    { n: 512, w: "appropriate", ipa: "/əˈprəʊpriət/", m: "a. 合适的" },
+    { n: 513, w: "nuclear", ipa: "/ˈnjuːkliə(r)/", m: "a. 核能的" },
+    { n: 514, w: "eventual", ipa: "/ɪˈventʃuəl/", m: "a. 最终的" },
+    { n: 515, w: "argument", ipa: "/ˈɑːɡjumənt/", m: "n. 论据，争辩" },
+    { n: 516, w: "objective", ipa: "/əbˈdʒektɪv/", m: "a. 客观的 n. 目标" },
+    { n: 517, w: "efficient", ipa: "/ɪˈfɪʃnt/", m: "a. 高效的" },
+    { n: 518, w: "origin", ipa: "/ˈɒrɪdʒɪn/", m: "n. 起源，出身" },
+    { n: 519, w: "assume", ipa: "/əˈsjuːm/", m: "vt. 假定，设想" },
+    { n: 520, w: "obstacle", ipa: "/ˈɒbstəkl/", m: "n. 阻碍物" },
+    { n: 521, w: "consumption", ipa: "/kənˈsʌmpʃn/", m: "n. 消耗，消费" },
+    { n: 522, w: "occupation", ipa: "/ˌɒkjuˈpeɪʃn/", m: "n. 职业；占用" },
+    { n: 523, w: "establish", ipa: "/ɪˈstæblɪʃ/", m: "vt. 创立，确立" },
+    { n: 524, w: "method", ipa: "/ˈmeθəd/", m: "n. 方式方法" },
+    { n: 525, w: "expect", ipa: "/ɪkˈspekt/", m: "vt. 预料，期盼" },
+    { n: 526, w: "demonstrate", ipa: "/ˈdemənstreɪt/", m: "vt. 证实，展示" },
+    { n: 527, w: "project", ipa: "/ˈprɒdʒekt/", m: "n. 项目 v. 规划" },
+    { n: 528, w: "intention", ipa: "/ɪnˈtenʃn/", m: "n. 意图，目的" },
+    { n: 529, w: "average", ipa: "/ˈævərɪdʒ/", m: "a. 平均的 n. 平均值" },
+    { n: 530, w: "address", ipa: "/əˈdres/", m: "vt. 解决 n. 地址" },
+    { n: 531, w: "property", ipa: "/ˈprɒpəti/", m: "n. 财产；属性" },
+    { n: 532, w: "interval", ipa: "/ˈɪntəvl/", m: "n. 间隔，间隙" },
+    { n: 533, w: "feature", ipa: "/ˈfiːtʃə(r)/", m: "n. 特色，特征" },
+    { n: 534, w: "proceed", ipa: "/prəˈsiːd/", m: "vi. 继续" },
+    { n: 535, w: "policy", ipa: "/ˈpɒləsi/", m: "n. 政策规章" },
+    { n: 536, w: "expectation", ipa: "/ˌekspekˈteɪʃn/", m: "n. 预期，期许" },
+    { n: 537, w: "monitor", ipa: "/ˈmɒnɪtə(r)/", m: "v. 监管 n. 显示器" },
+    { n: 538, w: "potential", ipa: "/pəˈtenʃl/", m: "a. 潜在的 n. 潜能" },
+    { n: 539, w: "privilege", ipa: "/ˈprɪvəlɪdʒ/", m: "n. 特权优待" },
+    { n: 540, w: "proposal", ipa: "/prəˈpəʊzl/", m: "n. 提议提案" },
+    { n: 541, w: "exception", ipa: "/ɪkˈsepʃn/", m: "n. 例外情况" },
+    { n: 542, w: "purchase", ipa: "/ˈpɜːtʃəs/", m: "v./n. 购买" },
+    { n: 543, w: "enhance", ipa: "/ɪnˈhɑːns/", m: "vt. 提升水准" },
+    { n: 544, w: "predictable", ipa: "/prɪˈdɪktəbl/", m: "a. 可预判的" },
+    { n: 545, w: "preference", ipa: "/ˈprefrəns/", m: "n. 偏好偏爱" },
+    { n: 546, w: "progressive", ipa: "/prəˈɡresɪv/", m: "a. 循序渐进的" },
+    { n: 547, w: "economic", ipa: "/ˌiːkəˈnɒmɪk/", m: "a. 经济的" },
+    { n: 548, w: "proportion", ipa: "/prəˈpɔːʃn/", m: "n. 占比份额" },
+    { n: 549, w: "publish", ipa: "/ˈpʌblɪʃ/", m: "vt. 刊发，发表" },
+    { n: 550, w: "possess", ipa: "/pəˈzes/", m: "vt. 拥有" }
   ];
 
-  const byId = new Map(WORDS.map(w => [w.id, w]));
-  const ALL_IDS = WORDS.map(w => w.id);
-  const KEY = "cet50.v1";
+  const PER_BLOCK = 50;
+  const BLOCK_COUNT = Math.ceil(WORDS.length / PER_BLOCK);
+  const byN = new Map(WORDS.map(w => [w.n, w]));
+  const BLOCK_NS = Array.from({ length: BLOCK_COUNT }, () => []);
+  WORDS.forEach(w => {
+    BLOCK_NS[Math.floor((w.n - 1) / PER_BLOCK)].push(w.n);
+  });
 
-  const state = { round: 1, queue: ALL_IDS.slice(), idx: 0, status: {}, finished: false };
+  const KEY = "cet550.v1";
+  const hasTTS = "speechSynthesis" in window;
+
+  function freshBlock(b) {
+    return { queue: BLOCK_NS[b].slice(), idx: 0, status: {}, finished: false, round: 1 };
+  }
+
+  const state = {
+    block: 0,
+    autoSpeak: true,
+    blocks: Array.from({ length: BLOCK_COUNT }, (_, b) => freshBlock(b))
+  };
 
   const el = id => document.getElementById(id);
-  const flipEl = el("flip");
-  const sheetEl = el("sheet");
+  const SPK = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h3L12 6.2v11.6L7.5 14.5h-3z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.8a7.6 7.6 0 0 1 0 10.4"/></svg>';
 
+  function rangeText(b) {
+    const ns = BLOCK_NS[b];
+    return ns[0] + "–" + ns[ns.length - 1];
+  }
+  function blockLabel(b) {
+    return "第 " + (b + 1) + " 组 · " + rangeText(b);
+  }
+
+  /* ---------- storage ---------- */
   function loadState() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      if (!saved || !Array.isArray(saved.queue) || !saved.queue.length) return;
-      const queue = saved.queue.filter(id => byId.has(id));
-      if (!queue.length) return;
-      state.queue = queue;
-      state.round = Number.isInteger(saved.round) && saved.round > 0 ? saved.round : 1;
-      state.idx = Math.min(Math.max(0, Number(saved.idx) || 0), queue.length);
-      state.status = saved.status && typeof saved.status === "object" ? saved.status : {};
-      state.finished = !!saved.finished;
-      if (state.finished) state.idx = queue.length;
-    } catch (e) { /* storage unavailable — run in memory */ }
+      if (!saved) return;
+      if (Number.isInteger(saved.block) && saved.block >= 0 && saved.block < BLOCK_COUNT) {
+        state.block = saved.block;
+      }
+      if (typeof saved.autoSpeak === "boolean") state.autoSpeak = saved.autoSpeak;
+      if (Array.isArray(saved.blocks)) {
+        for (let b = 0; b < BLOCK_COUNT; b++) {
+          const sb = saved.blocks[b];
+          if (!sb || !Array.isArray(sb.queue)) continue;
+          const allowed = new Set(BLOCK_NS[b]);
+          const queue = sb.queue.map(Number).filter(n => allowed.has(n));
+          if (!queue.length) continue;
+          const status = {};
+          if (sb.status && typeof sb.status === "object") {
+            for (const [k, v] of Object.entries(sb.status)) {
+              const n = Number(k);
+              if (allowed.has(n) && (v === "known" || v === "unfamiliar")) status[n] = v;
+            }
+          }
+          const idx = Math.min(Math.max(0, Number(sb.idx) || 0), queue.length);
+          state.blocks[b] = {
+            queue,
+            idx,
+            status,
+            finished: !!sb.finished,
+            round: Number.isInteger(sb.round) && sb.round > 0 ? sb.round : 1
+          };
+          if (state.blocks[b].finished) state.blocks[b].idx = queue.length;
+        }
+      }
+    } catch (e) {
+      /* storage unavailable — run in memory */
+    }
   }
 
   function saveState() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) {
+      /* ignore */
+    }
   }
 
-  function currentWord() { return byId.get(state.queue[state.idx]); }
+  /* ---------- speech ---------- */
+  let voice = null;
+  let lastSpokenN = null;
+  let didStart = false;
 
-  function buzz(ms) {
-    try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+  function pickVoice() {
+    if (!hasTTS) return;
+    let voices = [];
+    try { voices = window.speechSynthesis.getVoices(); } catch (e) { return; }
+    if (!voices.length) return;
+    voice =
+      voices.find(v => /^en[-_]GB/i.test(v.lang) && /libby|hazel|female|uk/i.test(v.name)) ||
+      voices.find(v => /^en[-_]GB/i.test(v.lang)) ||
+      voices.find(v => /^en[-_]US/i.test(v.lang)) ||
+      null;
   }
 
-  function flip() {
-    if (state.finished) return;
-    flipEl.classList.toggle("flipped");
+  function cancelSpeech() {
+    if (!hasTTS) return;
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    document.querySelectorAll(".playing").forEach(b => b.classList.remove("playing"));
   }
 
+  function speak(text, btn) {
+    if (!hasTTS) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-GB";
+      u.rate = 0.85;
+      if (voice) u.voice = voice;
+      u.onstart = () => {
+        didStart = true;
+        if (btn) btn.classList.add("playing");
+      };
+      u.onend = () => { if (btn) btn.classList.remove("playing"); };
+      u.onerror = () => { if (btn) btn.classList.remove("playing"); };
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  function currentWordObj() {
+    const bs = state.blocks[state.block];
+    if (bs.finished) return null;
+    return byN.get(bs.queue[bs.idx]) || null;
+  }
+
+  function speakCurrent(btn) {
+    const w = currentWordObj();
+    if (w) speak(w.w, btn || null);
+  }
+
+  /* ---------- render ---------- */
   function render() {
-    el("roundLabel").textContent = state.round === 1
-      ? `第 1 轮 · 全部 ${state.queue.length} 词`
-      : `第 ${state.round} 轮 · 不熟重练 ${state.queue.length} 词`;
+    const bs = state.blocks[state.block];
+    const label = blockLabel(state.block);
+    el("roundLabel").textContent = label + (bs.round > 1 ? " · 第 " + bs.round + " 轮" : "");
+
+    const shown = bs.finished ? bs.queue.length : Math.min(bs.idx + 1, bs.queue.length);
+    el("countLabel").textContent = shown + " / " + bs.queue.length;
 
     const dots = el("dots");
     dots.innerHTML = "";
     const frag = document.createDocumentFragment();
-    state.queue.forEach((id, i) => {
+    bs.queue.forEach((n, i) => {
       const dot = document.createElement("span");
       dot.className = "dot";
-      const st = state.status[id];
+      const st = bs.status[n];
       if (st) dot.classList.add("done", st);
-      if (i === state.idx && !state.finished) dot.classList.add("current");
+      if (i === bs.idx && !bs.finished) dot.classList.add("current");
       frag.appendChild(dot);
     });
     dots.appendChild(frag);
 
-    const shown = state.finished ? state.queue.length : Math.min(state.idx + 1, state.queue.length);
-    el("countLabel").textContent = `${shown} / ${state.queue.length}`;
+    el("autoBtn").classList.toggle("on", state.autoSpeak);
+    el("autoBtn").setAttribute("aria-pressed", String(state.autoSpeak));
 
-    if (state.finished) { renderEnd(); return; }
+    if (bs.finished) {
+      cancelSpeech();
+      renderEnd(bs);
+      return;
+    }
 
-    flipEl.hidden = false;
+    el("flip").hidden = false;
     el("end").hidden = true;
     el("controls").hidden = false;
 
-    const w = currentWord();
+    const w = byN.get(bs.queue[bs.idx]);
     if (!w) return;
-    el("word").textContent = w.word;
-    el("meaning").textContent = w.meaning;
-    el("freqNum").textContent = w.freq;
-    el("backWord").textContent = w.word;
-    flipEl.classList.remove("flipped");
-    flipEl.style.transform = "";
-    flipEl.setAttribute("aria-label", `${w.word}，点击翻面看释义`);
-    el("prevBtn").disabled = state.idx === 0;
-    el("nextBtn").disabled = state.idx >= state.queue.length - 1;
-  }
+    el("noLabel").textContent = "No. " + w.n;
+    const wordEl = el("word");
+    wordEl.textContent = w.w;
+    wordEl.className = "word" + (w.w.length > 14 ? " long" : w.w.length > 12 ? " mid" : "");
+    el("ipa").textContent = w.ipa;
+    el("backWord").textContent = w.w;
+    el("backIpa").textContent = w.ipa;
+    el("meaning").textContent = w.m;
+    el("speakFront").setAttribute("aria-label", "朗读 " + w.w);
+    el("speakBack").setAttribute("aria-label", "朗读 " + w.w);
+    el("flip").classList.remove("flipped");
+    el("prevBtn").disabled = bs.idx === 0;
+    el("nextBtn").disabled = bs.idx >= bs.queue.length - 1;
 
-  function renderEnd() {
-    flipEl.hidden = true;
-    el("controls").hidden = true;
-    const end = el("end");
-    end.hidden = false;
-
-    const known = state.queue.filter(id => state.status[id] === "known").length;
-    const unknownIds = state.queue.filter(id => state.status[id] === "unfamiliar");
-    const unknown = unknownIds.length;
-
-    el("endRound").textContent = state.round === 1 ? "第 1 轮" : `第 ${state.round} 轮`;
-    el("statKnown").textContent = known;
-    el("statUnknown").textContent = unknown;
-
-    if (unknown === 0) {
-      el("endTitle").textContent = "全部记住了";
-      el("endSub").textContent = "这批词都过了。考前再用「词表」扫一遍，保持眼熟。";
-      el("retryBtn").disabled = true;
-      el("retryBtn").textContent = "没有需要重练的词";
-    } else {
-      el("endTitle").textContent = "本轮完成";
-      el("endSub").textContent = "不熟的词单独再过一遍，比整套重刷更有效。";
-      el("retryBtn").disabled = false;
-      el("retryBtn").textContent = `重练不熟的词（${unknown}）`;
+    if (state.autoSpeak && w.n !== lastSpokenN) {
+      lastSpokenN = w.n;
+      speak(w.w);
     }
   }
 
-  function mark(type) {
-    if (state.finished) return;
-    const w = currentWord();
-    if (!w) return;
-    state.status[w.id] = type;
-    buzz(12);
-    if (state.idx < state.queue.length - 1) {
-      state.idx += 1;
+  function renderEnd(bs) {
+    el("flip").hidden = true;
+    el("controls").hidden = true;
+    el("end").hidden = false;
+
+    const known = bs.queue.filter(n => bs.status[n] === "known").length;
+    const unknown = bs.queue.filter(n => bs.status[n] === "unfamiliar").length;
+    const allDone = state.blocks.every(b => b.finished);
+
+    el("endRound").textContent = blockLabel(state.block) + (bs.round > 1 ? " · 第 " + bs.round + " 轮" : "");
+    el("statKnown").textContent = known;
+    el("statUnknown").textContent = unknown;
+
+    const nextBtn = el("nextBlockBtn");
+    if (state.block + 1 < BLOCK_COUNT) {
+      nextBtn.hidden = false;
+      nextBtn.disabled = false;
+      nextBtn.textContent = "进入下一组（" + rangeText(state.block + 1) + "）";
     } else {
-      state.finished = true;
-      state.idx = state.queue.length;
+      nextBtn.hidden = true;
+    }
+
+    const retryBtn = el("retryBtn");
+    if (unknown === 0) {
+      retryBtn.disabled = true;
+      retryBtn.textContent = "没有需要重练的词";
+      el("endTitle").textContent = allDone ? "550 词全部完成" : "本组全部记住";
+      el("endSub").textContent = allDone
+        ? "五十词一组过完了。考前用「分组」和「词表」扫一遍，保持眼熟。"
+        : "这一组没有生词了。可以进入下一组，或者回到「分组」挑选。";
+    } else {
+      retryBtn.disabled = false;
+      retryBtn.textContent = "重练不熟的词（" + unknown + "）";
+      el("endTitle").textContent = "本组完成";
+      el("endSub").textContent = "不熟的词单独再过一遍，比整套重刷更有效。";
+    }
+  }
+
+  /* ---------- actions ---------- */
+  function flip() {
+    const bs = state.blocks[state.block];
+    if (bs.finished) return;
+    el("flip").classList.toggle("flipped");
+  }
+
+  function mark(type) {
+    const bs = state.blocks[state.block];
+    if (bs.finished) return;
+    const n = bs.queue[bs.idx];
+    if (!n) return;
+    bs.status[n] = type;
+    if (bs.idx < bs.queue.length - 1) {
+      bs.idx += 1;
+    } else {
+      bs.finished = true;
+      bs.idx = bs.queue.length;
+      cancelSpeech();
     }
     saveState();
     render();
   }
 
   function goPrev() {
-    if (state.finished || state.idx === 0) return;
-    state.idx -= 1;
+    const bs = state.blocks[state.block];
+    if (bs.finished || bs.idx === 0) return;
+    bs.idx -= 1;
     saveState();
     render();
   }
 
   function goNext() {
-    if (state.finished || state.idx >= state.queue.length - 1) return;
-    state.idx += 1;
+    const bs = state.blocks[state.block];
+    if (bs.finished || bs.idx >= bs.queue.length - 1) return;
+    bs.idx += 1;
     saveState();
     render();
   }
 
-  function startRound(queue, round) {
-    state.queue = queue;
-    state.round = round;
-    state.idx = 0;
-    state.status = {};
-    state.finished = false;
+  function switchBlock(b) {
+    if (b < 0 || b >= BLOCK_COUNT) return;
+    state.block = b;
+    lastSpokenN = null;
     saveState();
     render();
     window.scrollTo(0, 0);
   }
 
-  function retryUnknown() {
-    const unknownIds = state.queue.filter(id => state.status[id] === "unfamiliar");
-    if (!unknownIds.length) return;
-    startRound(unknownIds, state.round + 1);
+  function goNextBlock() {
+    switchBlock(state.block + 1);
   }
 
-  function restartAll() { startRound(ALL_IDS.slice(), 1); }
+  function retryUnknown() {
+    const bs = state.blocks[state.block];
+    const ids = bs.queue.filter(n => bs.status[n] === "unfamiliar");
+    if (!ids.length) return;
+    state.blocks[state.block] = {
+      queue: ids,
+      idx: 0,
+      status: {},
+      finished: false,
+      round: bs.round + 1
+    };
+    lastSpokenN = null;
+    saveState();
+    render();
+    window.scrollTo(0, 0);
+  }
 
-  function buildSheet() {
-    const list = el("sheetList");
+  function restartBlock() {
+    state.blocks[state.block] = freshBlock(state.block);
+    lastSpokenN = null;
+    saveState();
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- sheets ---------- */
+  function buildBlockList() {
+    const box = el("blockList");
+    box.innerHTML = "";
     const frag = document.createDocumentFragment();
-    WORDS.forEach(w => {
+    for (let b = 0; b < BLOCK_COUNT; b++) {
+      const bs = state.blocks[b];
+      const done = bs.queue.filter(n => bs.status[n]).length;
+      const unknown = bs.queue.filter(n => bs.status[n] === "unfamiliar").length;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "block-row" + (b === state.block ? " current" : "");
+
+      const name = document.createElement("span");
+      name.className = "block-name";
+      name.textContent = "第 " + (b + 1) + " 组 ";
+      const range = document.createElement("span");
+      range.className = "block-range";
+      range.textContent = rangeText(b);
+      name.appendChild(range);
+
+      const meta = document.createElement("span");
+      meta.className = "block-meta";
+      if (bs.finished) {
+        meta.textContent = "已完成 · 不熟 " + unknown;
+      } else if (done > 0) {
+        meta.textContent = "已过 " + done + "/" + bs.queue.length + (bs.round > 1 ? " · 第" + bs.round + "轮" : "");
+      } else {
+        meta.textContent = "未开始";
+      }
+
+      const chev = document.createElement("span");
+      chev.className = "chev";
+      chev.textContent = "›";
+
+      btn.append(name, meta, chev);
+      btn.addEventListener("click", () => {
+        switchBlock(b);
+        el("blocksSheet").hidden = true;
+      });
+      frag.appendChild(btn);
+    }
+    box.appendChild(frag);
+  }
+
+  function buildWordList() {
+    const bs = state.blocks[state.block];
+    el("listTitle").textContent = blockLabel(state.block) + (bs.round > 1 ? " · 第 " + bs.round + " 轮" : "");
+    const list = el("listItems");
+    list.innerHTML = "";
+    const frag = document.createDocumentFragment();
+    bs.queue.forEach(n => {
+      const w = byN.get(n);
+      if (!w) return;
       const li = document.createElement("li");
+
       const word = document.createElement("span");
       word.className = "w";
-      word.textContent = w.word;
-      const freq = document.createElement("span");
-      freq.className = "f";
-      freq.textContent = `${w.freq}次`;
+      word.textContent = w.w;
+
+      const ipa = document.createElement("span");
+      ipa.className = "ipa";
+      ipa.textContent = w.ipa;
+
       const meaning = document.createElement("span");
       meaning.className = "m";
-      meaning.textContent = w.meaning;
-      li.append(word, freq, meaning);
+      meaning.textContent = w.m;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mini-speak";
+      btn.setAttribute("aria-label", "朗读 " + w.w);
+      btn.innerHTML = SPK;
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        speak(w.w, btn);
+      });
+
+      li.append(word, ipa, meaning, btn);
       frag.appendChild(li);
     });
     list.appendChild(frag);
   }
 
-  /* ---- tap to flip, horizontal swipe to move ---- */
-  let downX = 0, downY = 0, deltaX = 0, tracking = false, swiped = false;
-
-  flipEl.addEventListener("pointerdown", e => {
-    if (state.finished || e.pointerType === "mouse" && e.button !== 0) return;
-    tracking = true; swiped = false;
-    downX = e.clientX; downY = e.clientY; deltaX = 0;
-    flipEl.classList.add("dragging");
-    try { flipEl.setPointerCapture(e.pointerId); } catch (err) {}
-  });
-
-  flipEl.addEventListener("pointermove", e => {
-    if (!tracking) return;
-    const dx = e.clientX - downX;
-    const dy = e.clientY - downY;
-    if (Math.abs(dy) > Math.abs(dx) + 8) { deltaX = 0; return; }
-    deltaX = dx;
-    if (Math.abs(dx) > 8) swiped = true;
-    flipEl.style.transform = `translateX(${Math.max(-110, Math.min(110, dx * 0.45))}px)`;
-  });
-
-  function endDrag() {
-    if (!tracking) return;
-    tracking = false;
-    flipEl.classList.remove("dragging");
-    const threshold = 52;
-    if (Math.abs(deltaX) > threshold) {
-      const dir = deltaX < 0 ? 1 : -1; // swipe left -> next
-      flipEl.style.transform = "";
-      if (dir === 1) goNext(); else goPrev();
-      buzz(8);
-    } else {
-      flipEl.style.transform = "";
-      if (!swiped) flip();
+  /* ---------- events ---------- */
+  el("flip").addEventListener("click", flip);
+  el("flip").addEventListener("keydown", e => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      flip();
     }
-    deltaX = 0;
-  }
-
-  flipEl.addEventListener("pointerup", endDrag);
-  flipEl.addEventListener("pointercancel", () => {
-    tracking = false; swiped = false; deltaX = 0;
-    flipEl.classList.remove("dragging");
-    flipEl.style.transform = "";
   });
-  flipEl.addEventListener("keydown", e => {
-    if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+
+  el("speakFront").addEventListener("click", e => {
+    e.stopPropagation();
+    speakCurrent(e.currentTarget);
+  });
+  el("speakBack").addEventListener("click", e => {
+    e.stopPropagation();
+    speakCurrent(e.currentTarget);
   });
 
   el("knownBtn").addEventListener("click", () => mark("known"));
   el("unknownBtn").addEventListener("click", () => mark("unfamiliar"));
   el("prevBtn").addEventListener("click", goPrev);
   el("nextBtn").addEventListener("click", goNext);
+  el("nextBlockBtn").addEventListener("click", goNextBlock);
   el("retryBtn").addEventListener("click", retryUnknown);
-  el("againBtn").addEventListener("click", restartAll);
+  el("againBtn").addEventListener("click", restartBlock);
 
-  el("listBtn").addEventListener("click", () => { sheetEl.hidden = false; });
-  el("closeSheet").addEventListener("click", () => { sheetEl.hidden = true; });
-  sheetEl.addEventListener("click", e => { if (e.target === sheetEl) sheetEl.hidden = true; });
+  el("autoBtn").addEventListener("click", () => {
+    state.autoSpeak = !state.autoSpeak;
+    if (state.autoSpeak) {
+      const w = currentWordObj();
+      if (w) {
+        lastSpokenN = w.n;
+        speak(w.w);
+      }
+    } else {
+      cancelSpeech();
+      lastSpokenN = null;
+    }
+    el("autoBtn").classList.toggle("on", state.autoSpeak);
+    el("autoBtn").setAttribute("aria-pressed", String(state.autoSpeak));
+    saveState();
+  });
+
+  el("blocksBtn").addEventListener("click", () => {
+    buildBlockList();
+    el("blocksSheet").hidden = false;
+  });
+  el("closeBlocks").addEventListener("click", () => { el("blocksSheet").hidden = true; });
+  el("blocksSheet").addEventListener("click", e => {
+    if (e.target === el("blocksSheet")) el("blocksSheet").hidden = true;
+  });
+
+  el("listBtn").addEventListener("click", () => {
+    buildWordList();
+    el("listSheet").hidden = false;
+  });
+  el("closeList").addEventListener("click", () => { el("listSheet").hidden = true; });
+  el("listSheet").addEventListener("click", e => {
+    if (e.target === el("listSheet")) el("listSheet").hidden = true;
+  });
 
   document.addEventListener("keydown", e => {
-    if (!sheetEl.hidden) {
-      if (e.key === "Escape") sheetEl.hidden = true;
+    const sheetsOpen = !el("blocksSheet").hidden || !el("listSheet").hidden;
+    if (sheetsOpen) {
+      if (e.key === "Escape") {
+        el("blocksSheet").hidden = true;
+        el("listSheet").hidden = true;
+      }
       return;
     }
-    if (state.finished) return;
+    const bs = state.blocks[state.block];
+    if (bs.finished) return;
     if (e.key === " ") { e.preventDefault(); flip(); }
     else if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
     else if (e.key === "ArrowRight") { e.preventDefault(); goNext(); }
     else if (e.key === "1") { mark("known"); }
     else if (e.key === "2") { mark("unfamiliar"); }
+    else if (e.key === "p" || e.key === "P") { speakCurrent(null); }
   });
 
+  function unlockAudio() {
+    if (!hasTTS) return;
+    if (!state.autoSpeak || didStart) return;
+    const bs = state.blocks[state.block];
+    if (bs.finished) return;
+    const w = byN.get(bs.queue[bs.idx]);
+    if (w) speak(w.w);
+  }
+  document.addEventListener("pointerdown", unlockAudio, { once: true });
+  document.addEventListener("keydown", unlockAudio, { once: true });
+
+  /* ---------- init ---------- */
+  if (!hasTTS) document.body.classList.add("no-tts");
+  if (hasTTS) {
+    pickVoice();
+    if (typeof window.speechSynthesis.addEventListener === "function") {
+      window.speechSynthesis.addEventListener("voiceschanged", pickVoice);
+    }
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+  }
   loadState();
-  buildSheet();
   render();
 </script>
 </body>
